@@ -1,0 +1,6 @@
+.grid-bg {
+  background:
+    radial-gradient(transparent 1px, rgba(255,255,255,0.04) 1px) 0 0 / 22px 22px,
+    linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0)) no-repeat;
+}
+

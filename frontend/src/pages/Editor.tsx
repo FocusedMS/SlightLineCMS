@@ -1,7 +1,8 @@
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-import ReactQuill from 'react-quill'
+import { lazy, Suspense } from 'react'
+const ReactQuill = lazy(() => import('react-quill'))
 import 'react-quill/dist/quill.snow.css'
 import { api } from '../lib/api'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -60,7 +61,7 @@ export default function Editor() {
     }
   }, [existing, reset])
 
-  const quillRef = useRef<ReactQuill|null>(null)
+  const quillRef = useRef<any>(null)
   const [seo, setSeo] = useState<any>(null)
   const [seoLoading, setSeoLoading] = useState(false)
 
@@ -106,7 +107,7 @@ export default function Editor() {
       const file = (input.files?.[0])
       if (!file) return
       const url = await onImageUpload(file)
-      const editor = quillRef.current?.getEditor()
+      const editor = quillRef.current?.getEditor?.()
       const range = editor?.getSelection(true)
       if (range) {
         editor!.insertEmbed(range.index, 'image', url)
@@ -130,6 +131,8 @@ export default function Editor() {
     }
   }), [])
 
+  // Debounced SEO analyze
+  let seoTimer: number | undefined
   const analyzeSeo = async () => {
     const body = {
       title: watch('title'),
@@ -146,6 +149,11 @@ export default function Editor() {
     } finally {
       setSeoLoading(false)
     }
+  }
+  const scheduleSeo = () => {
+    if (seoTimer) window.clearTimeout(seoTimer)
+    // 700ms debounce
+    seoTimer = window.setTimeout(analyzeSeo, 700)
   }
 
   const onSubmit = async (data: Form) => {
@@ -177,7 +185,7 @@ export default function Editor() {
             <>
               <div className="space-y-2">
                 <label className="label">Title</label>
-                <Input placeholder="Title" {...register('title')} />
+                <Input placeholder="Title" {...register('title')} onChange={(e)=>{ register('title').onChange(e); scheduleSeo(); }} />
                 {errors.title && (
                   <p className="text-red-500 text-sm">{errors.title.message}</p>
                 )}
@@ -185,23 +193,25 @@ export default function Editor() {
 
               <div className="space-y-2">
                 <label className="label">Excerpt</label>
-                <Input placeholder="Short summary…" {...register('excerpt')} />
+                <Input placeholder="Short summary…" {...register('excerpt')} onChange={(e)=>{ register('excerpt').onChange(e); scheduleSeo(); }} />
               </div>
 
               <div className="space-y-2">
                 <label className="label">Focus keyword</label>
-                <Input placeholder="e.g., hello" {...register('focusKeyword')} />
+                <Input placeholder="e.g., hello" {...register('focusKeyword')} onChange={(e)=>{ register('focusKeyword').onChange(e); scheduleSeo(); }} />
               </div>
 
               <div className="space-y-2">
                 <label className="label">Content</label>
-                <ReactQuill
-                  ref={quillRef}
-                  theme="snow"
-                  value={watch('contentHtml') || ''}
-                  onChange={(html) => setValue('contentHtml', html, { shouldDirty: true })}
-                  modules={modules}
-                />
+                <Suspense fallback={<div className="text-sm text-gray-500">Loading editor…</div>}>
+                  <ReactQuill
+                    ref={quillRef as any}
+                    theme="snow"
+                    value={watch('contentHtml') || ''}
+                    onChange={(html) => { setValue('contentHtml', html, { shouldDirty: true }); scheduleSeo(); }}
+                    modules={modules}
+                  />
+                </Suspense>
               </div>
 
               <div className="space-y-2">
@@ -292,7 +302,7 @@ export default function Editor() {
               )}
             </div>
           ) : (
-            <div className="text-sm text-gray-500">Fill fields and hit “Check SEO”.</div>
+            <div className="text-sm text-gray-500">Fill fields and the analyzer will update.</div>
           )}
         </Card>
       </aside>

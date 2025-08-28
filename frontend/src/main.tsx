@@ -31,9 +31,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Toaster
               position="top-right"
               toastOptions={{
-                style: { borderRadius: 12, background: "#ffffff", color: "#0f172a", border: "1px solid #e5e7eb" },
-                success: { iconTheme: { primary: "#2563eb", secondary: "#fff" } },
-                error: { iconTheme: { primary: "#ef4444", secondary: "#fff" } },
+                style: {
+                  borderRadius: 12,
+                  background: 'var(--surface)',
+                  color: 'var(--text)',
+                  border: '1px solid var(--border)'
+                }
               }}
             />
           </BrowserRouter>

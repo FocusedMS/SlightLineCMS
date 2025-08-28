@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Card } from "../components/ui/Card";
+import { Input } from "../components/ui/Input";
+import Button from "../components/ui/Button";
 
 const API =
   (import.meta as any).env?.VITE_API_BASE_URL || "http://localhost:5000";
@@ -96,101 +99,47 @@ export default function NewPostPage() {
   }
 
   return (
-    <div style={{ maxWidth: 900, margin: "24px auto", padding: "0 16px" }}>
-      <h1 style={{ marginBottom: 16 }}>New Post</h1>
+    <div className="container py-6">
+      <Card className="space-y-4">
+        <h1 className="text-2xl font-semibold">New Post</h1>
+        {msg && <div className="chip chip-neutral">{msg}</div>}
 
-      {msg && (
-        <div
-          style={{
-            background: "#f1f5f9",
-            border: "1px solid #e2e8f0",
-            padding: 12,
-            borderRadius: 12,
-            marginBottom: 16,
-          }}
-        >
-          {msg}
+        <div className="space-y-2">
+          <label className="label">Title</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Post title" />
         </div>
-      )}
 
-      <label style={{ display: "block", marginBottom: 8 }}>Title</label>
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Post title"
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid #e2e8f0",
-          marginBottom: 16,
-        }}
-      />
+        <div className="space-y-2">
+          <label className="label">Excerpt</label>
+          <Input value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Short summary (≤ 160 chars)" maxLength={160} />
+        </div>
 
-      <label style={{ display: "block", marginBottom: 8 }}>Excerpt</label>
-      <input
-        value={excerpt}
-        onChange={(e) => setExcerpt(e.target.value)}
-        placeholder="Short summary (≤ 160 chars)"
-        maxLength={160}
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid #e2e8f0",
-          marginBottom: 16,
-        }}
-      />
+        <div className="space-y-2">
+          <label className="label">Cover image</label>
+          <input type="file" accept="image/*" onChange={handleUpload} disabled={uploading} />
+          {coverImageUrl && (
+            <div>
+              <img src={`${API}${coverImageUrl}`} alt="cover" className="rounded-xl max-w-full" loading="lazy" />
+            </div>
+          )}
+        </div>
 
-      <label style={{ display: "block", marginBottom: 8 }}>Cover image</label>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleUpload}
-        disabled={uploading}
-        style={{ marginBottom: 8 }}
-      />
-      {coverImageUrl && (
-        <div style={{ marginBottom: 16 }}>
-          <img
-            src={`${API}${coverImageUrl}`}
-            alt="cover"
-            style={{ maxWidth: "100%", borderRadius: 12 }}
+        <div className="space-y-2">
+          <label className="label">Content (HTML)</label>
+          <textarea
+            value={contentHtml}
+            onChange={(e) => setContentHtml(e.target.value)}
+            rows={10}
+            placeholder="<p>Write something...</p>"
+            className="w-full rounded-lg px-3 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] text-[color:var(--text)] font-mono"
           />
         </div>
-      )}
 
-      <label style={{ display: "block", marginBottom: 8 }}>Content (HTML)</label>
-      <textarea
-        value={contentHtml}
-        onChange={(e) => setContentHtml(e.target.value)}
-        rows={10}
-        placeholder="<p>Write something...</p>"
-        style={{
-          width: "100%",
-          padding: 12,
-          borderRadius: 12,
-          border: "1px solid #e2e8f0",
-          marginBottom: 16,
-          fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-        }}
-      />
-
-      <button
-        onClick={handleSaveDraft}
-        disabled={saving}
-        style={{
-          padding: "10px 16px",
-          borderRadius: 12,
-          border: "1px solid #0ea5e9",
-          background: saving ? "#bae6fd" : "#38bdf8",
-          color: "#0b1220",
-          cursor: "pointer",
-          fontWeight: 600,
-        }}
-      >
-        {saving ? "Saving…" : "Save Draft"}
-      </button>
+        <div className="flex gap-2">
+          <Button onClick={handleSaveDraft} disabled={saving}>{saving ? 'Saving…' : 'Save Draft'}</Button>
+          <Button className="btn-ghost" variant="outline" onClick={() => setContentHtml('<p></p>')}>Clear</Button>
+        </div>
+      </Card>
     </div>
   );
 }

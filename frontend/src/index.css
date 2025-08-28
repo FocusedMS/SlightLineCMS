@@ -1,48 +1,64 @@
+@import './styles/theme.css';
+@import './styles/grid.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html, body, #root { height: 100%; }
-body { @apply bg-gray-50 text-gray-900; }
+body { background: #0B1020; color: #A7B3CF; }
 
 /* Container & surface */
 .container { @apply max-w-7xl mx-auto px-4; }
-.card { @apply bg-white/90 backdrop-blur rounded-2xl shadow-sm border border-gray-200; }
+.card { @apply rounded-[18px] shadow-card border bg-bg-raised border-white/10; }
 
 /* Buttons */
-.btn { @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium transition; }
-.btn-primary { @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700 hover:shadow-md; }
-.btn-outline { @apply btn border border-gray-300 text-gray-800 hover:bg-gray-100; }
+.btn { @apply inline-flex items-center gap-2 px-5 py-2.5 rounded-[18px] font-medium transition; }
+.btn-primary { @apply text-white bg-brand-600 hover:bg-brand-500 shadow-card; }
+.btn-outline { @apply text-white border border-white/10 hover:bg-white/5; }
+.btn-ghost { @apply text-white hover:bg-white/5; }
 
 /* Inputs */
-.input { @apply w-full border border-gray-300 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500; }
-.select { @apply w-full border border-gray-300 rounded-xl px-3 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-brand-500; }
-.label { @apply text-sm font-medium text-gray-700; }
+.input { @apply w-full rounded-[14px] px-4 py-2.5 bg-bg-subtle border border-white/10 text-white focus:outline-none focus:shadow-focus focus:border-brand-500/50; }
+.select { @apply w-full rounded-[14px] px-4 py-2.5 bg-bg-subtle border border-white/10 text-white focus:outline-none focus:shadow-focus focus:border-brand-500/50; }
+.label { @apply text-sm font-medium text-text-dim; }
+
+/* Chip (status pill) */
+.chip { @apply inline-flex items-center gap-1 px-2 py-1 rounded-pill text-xs font-medium ring-1 ring-white/10 bg-white/5 text-text-soft; }
+.chip-success { color: var(--success); background: color-mix(in srgb, var(--success) 15%, transparent); border-color: color-mix(in srgb, var(--success) 40%, var(--border)); }
+.chip-warning { color: var(--warning); background: color-mix(in srgb, var(--warning) 15%, transparent); border-color: color-mix(in srgb, var(--warning) 40%, var(--border)); }
+.chip-danger { color: var(--danger); background: color-mix(in srgb, var(--danger) 15%, transparent); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+.chip-neutral { color: var(--muted); background: color-mix(in srgb, var(--text) 6%, transparent); }
 
 /* Tables */
 .table { @apply min-w-full text-sm; }
-.table thead tr { @apply border-b text-left; }
+.table thead tr { @apply border-b text-left dark:border-slate-800; }
 .table th { @apply px-4 py-3; }
 .table td { @apply px-4 py-3; }
 
 /* Rich text */
 .prose img { max-width: 100%; height: auto; border-radius: 0.75rem; }
+.prose { color: var(--text); }
+.prose p { margin: 1em 0; line-height: 1.8; color: var(--text); }
+.prose h1, .prose h2, .prose h3 { letter-spacing: -0.01em; }
+.prose blockquote { border-left: 4px solid var(--border); padding-left: 1rem; color: var(--muted); }
+.prose code { background: color-mix(in srgb, var(--text) 6%, transparent); padding: 2px 6px; border-radius: 6px; }
+.prose pre { background: color-mix(in srgb, var(--text) 6%, transparent); padding: 1rem; border-radius: 12px; overflow: auto; }
 
 /* Background: subtle dotted grid */
-.bg-grid {
-  background-image:
-    radial-gradient(circle at 1px 1px, rgb(229 231 235) 1px, transparent 0);
-  background-size: 20px 20px;
-}
+/* grid.css supplies .grid-bg */
 
 /* Header glass effect */
-.header-glass { @apply bg-white/70 backdrop-blur supports-[backdrop-filter]:bg-white/50; }
+.header-glass { @apply backdrop-blur; background: color-mix(in srgb, rgb(17 26 46) 90%, transparent); }
 
 /* Spinner */
 .spinner { @apply inline-block h-5 w-5 animate-spin rounded-full border-2 border-brand-600 border-t-transparent; }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
 
 /* Scrollbar (WebKit) */
 *::-webkit-scrollbar { width: 10px; height: 10px; }
-*::-webkit-scrollbar-track { background: #f1f5f9; }
-*::-webkit-scrollbar-thumb { background: #93c5fd; border-radius: 9999px; }
-*::-webkit-scrollbar-thumb:hover { background: #60a5fa; }
+*::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+*::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 9999px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }

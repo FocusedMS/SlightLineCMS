@@ -1,33 +1,29 @@
 import React from 'react'
 
-/**
- * A small badge/pill to display status or categorical information.  Colour
- * variants are computed automatically based on the provided type.  Pass
- * additional class names to adjust spacing or font size.
- */
 export type BadgeProps = {
   children: React.ReactNode
-  status?: 'success' | 'warning' | 'neutral' | 'danger'
+  variant?: 'published' | 'pending' | 'draft' | 'rejected'
   className?: string
 }
 
-export const Badge: React.FC<BadgeProps> = ({ children, status = 'neutral', className = '' }) => {
+export const Badge: React.FC<BadgeProps> = ({ children, variant = 'draft', className = '' }) => {
   let classes = ''
-  switch (status) {
-    case 'success':
-      classes = 'bg-green-100 text-green-700'
+  switch (variant) {
+    case 'published':
+      classes = 'bg-emerald-500/15 text-emerald-300 ring-1 ring-emerald-400/30'
       break
-    case 'warning':
-      classes = 'bg-amber-100 text-amber-700'
+    case 'pending':
+      classes = 'bg-amber-500/15 text-amber-300 ring-1 ring-amber-400/30'
       break
-    case 'danger':
-      classes = 'bg-red-100 text-red-700'
+    case 'rejected':
+      classes = 'bg-rose-500/15 text-rose-300 ring-1 ring-rose-400/30'
       break
+    case 'draft':
     default:
-      classes = 'bg-gray-100 text-gray-700'
+      classes = 'bg-white/5 text-text-soft ring-1 ring-white/10'
   }
   return (
-    <span className={`px-2 py-1 rounded text-xs font-medium ${classes} ${className}`}>{children}</span>
+    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${classes} ${className}`}>{children}</span>
   )
 }
 

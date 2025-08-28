@@ -1,5 +1,6 @@
 import * as React from "react";
 import { useApprovePost, useRejectPost } from "../hooks/useModeration";
+import Button from "./ui/Button";
 
 type Props = {
   post: { id: number; title: string; authorEmail?: string };
@@ -19,34 +20,21 @@ export function ModerationRow({ post }: Props) {
       </div>
 
       <div className="flex gap-2">
-        <button
-          className="px-3 py-1 rounded bg-green-600 text-white disabled:opacity-50"
-          onClick={() => approve.mutate(post.id)}
-          disabled={approve.isPending}
-        >
-          {approve.isPending ? "Approving…" : "Approve"}
-        </button>
-
-        <button
-          className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-50"
-          onClick={() => setShowRejectBox(true)}
-          disabled={reject.isPending}
-        >
-          Reject
-        </button>
+        <Button onClick={() => approve.mutate(post.id)} disabled={approve.isPending}> {approve.isPending ? "Approving…" : "Approve"} </Button>
+        <Button variant="outline" onClick={() => setShowRejectBox(true)} disabled={reject.isPending}>Reject</Button>
       </div>
 
       {showRejectBox && (
         <div className="mt-2 flex flex-col gap-2">
           <textarea
-            className="border p-2 text-sm"
+            className="w-full rounded-lg px-3 py-2 bg-[color:var(--surface)] border border-[color:var(--border)] text-[color:var(--text)] text-sm"
             placeholder="Reason (min 10 chars)"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
           <div className="flex gap-2">
             <button
-              className="px-3 py-1 rounded bg-red-600 text-white disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
               onClick={() =>
                 reject.mutate({ postId: post.id, reason }, { onSuccess: () => setShowRejectBox(false) })
               }
@@ -55,7 +43,7 @@ export function ModerationRow({ post }: Props) {
               {reject.isPending ? "Rejecting…" : "Confirm Reject"}
             </button>
             <button
-              className="px-3 py-1 rounded bg-gray-200"
+              className="btn-ghost"
               onClick={() => setShowRejectBox(false)}
             >
               Cancel

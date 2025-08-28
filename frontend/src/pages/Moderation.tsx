@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { api } from '../lib/api'
 import toast from 'react-hot-toast'
+import Card from '../components/ui/Card'
+import Button from '../components/ui/Button'
 
 type PendingPost = {
   id: number
@@ -132,9 +134,9 @@ export default function AdminModeration() {
       <h1 className="text-xl font-semibold">Moderation Queue</h1>
 
       {rows.length === 0 ? (
-        <div className="card p-6 text-gray-600">No posts waiting for review.</div>
+        <Card className="text-sm" style={{ color: 'var(--muted)' }}>No posts waiting for review.</Card>
       ) : (
-        <div className="overflow-x-auto">
+        <Card className="overflow-x-auto p-0">
           <table className="table">
             <thead>
               <tr>
@@ -146,36 +148,36 @@ export default function AdminModeration() {
             </thead>
             <tbody>
               {rows.map((p) => (
-                <tr key={p.id} className="border-b">
+                <tr key={p.id} className="border-b last:border-none">
                   <td>{p.title}</td>
                   <td>#{p.authorId}</td>
                   <td>{new Date(p.updatedAt).toLocaleString()}</td>
-                  <td className="flex flex-wrap gap-2">
-                    <button
-                      className="btn btn-primary"
+                  <td className="flex flex-wrap gap-2 py-2">
+                    <Button
+                      variant="success"
                       onClick={() => handleApprove(p)}
                       disabled={approve.isPending || reject.isPending}
                     >
                       {approve.isPending ? 'Approving…' : 'Approve'}
-                    </button>
-                    <button
-                      className="btn btn-outline"
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={() => handleReject(p)}
                       disabled={approve.isPending || reject.isPending}
                     >
                       {reject.isPending ? 'Rejecting…' : 'Reject'}
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
       <div className="flex items-center justify-center gap-3">
-        <button className="btn btn-outline" disabled={page<=1} onClick={()=>setPage(p=>Math.max(1, p-1))}>Prev</button>
+        <Button variant="outline" disabled={page<=1} onClick={()=>setPage(p=>Math.max(1, p-1))}>Prev</Button>
         <span className="text-sm">Page {page}</span>
-        <button className="btn btn-outline" disabled={(rows?.length||0) < pageSize} onClick={()=>setPage(p=>p+1)}>Next</button>
+        <Button variant="outline" disabled={(rows?.length||0) < pageSize} onClick={()=>setPage(p=>p+1)}>Next</Button>
       </div>
     </div>
   )

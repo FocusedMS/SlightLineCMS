@@ -146,3 +146,18 @@ Running the frontend test script will invoke `jest` with coverage enabled.  A sa
 ## 📄 License
 
 This project is provided as‑is for educational purposes.  You’re free to extend and adapt it for your own use.
+
+## 🎨 Design System
+
+This app uses a token‑driven theme based on the “Ink & Electric” palette.
+
+- CSS variables are defined in `frontend/src/styles/theme.css` for both light (`:root`) and dark (`.dark`) modes: `--bg`, `--surface`, `--border`, `--text`, `--muted`, `--primary`, `--primary-600`, `--accent`, `--success`, `--warning`, `--danger`, `--info`.
+- Tailwind is wired to these tokens in `frontend/tailwind.config.js` under `theme.extend.colors` for semantic usage.
+- Global styles live in `frontend/src/index.css` (base colors, dotted background, inputs, buttons, scrollbars). The dotted background utility is `bg-grid`.
+- UI primitives in `frontend/src/components/ui/` (e.g. `Button`, `Card`, `Badge`) consume tokens so pages stay consistent.
+- Toasts are themed via `<Toaster>` in `src/main.tsx`. Use `src/lib/toast.ts` helpers (`notify.success/error/info/warning`) for consistent UX.
+
+Tips:
+- Apply `.dark` on `<html>` to switch to the dark palette.
+- Prefer semantic colors (`bg`, `surface`, `text`, `primary`, etc.) over hardcoded Tailwind colors.
+- Wrap main content in a surface card when on dotted backgrounds to preserve contrast.

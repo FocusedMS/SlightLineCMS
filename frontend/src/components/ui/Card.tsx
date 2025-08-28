@@ -14,7 +14,7 @@ export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
 export const Card: React.FC<CardProps> = ({ className = '', children, ...rest }) => {
   return (
     <div
-      className={`bg-white rounded-2xl border border-gray-200 p-6 transition-shadow hover:shadow-md ${className}`}
+      className={`rounded-[18px] border p-6 shadow-card bg-bg-raised border-white/10 ${className}`}
       {...rest}
     >
       {children}

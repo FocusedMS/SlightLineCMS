@@ -2,6 +2,7 @@ using BlogCms.Api.Data;
 using BlogCms.Api.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using BCryptNet = BCrypt.Net.BCrypt;
+using System.Text.RegularExpressions;
 
 namespace BlogCms.Api
 {
@@ -66,12 +67,67 @@ namespace BlogCms.Api
                 await db.SaveChangesAsync();
             }
 
-            // --- Default category ---
-            if (!await db.Categories.AnyAsync())
+            // --- Categories ---
+            await EnsureCategoriesAsync(db);
+        }
+
+        private static string Slugify(string input)
+        {
+            var t = (input ?? "").Trim().ToLowerInvariant();
+            t = Regex.Replace(t, @"[^a-z0-9]+", "-");
+            t = Regex.Replace(t, @"-+", "-").Trim('-');
+            return string.IsNullOrWhiteSpace(t) ? Guid.NewGuid().ToString("n") : t;
+        }
+
+        private static async Task EnsureCategoriesAsync(BlogDbContext db)
+        {
+            var defaults = new[]
             {
-                db.Categories.Add(new Category { Name = "General", Slug = "general" });
-                await db.SaveChangesAsync();
+                "General",
+                "Technology",
+                "Programming",
+                "AI & Data",
+                "Design & UX",
+                "Productivity",
+                "Business & Startups",
+                "Finance & Investing",
+                "Marketing & SEO",
+                "Health & Fitness",
+                "Food & Recipes",
+                "Travel",
+                "Education & Learning",
+                "Lifestyle",
+                "Photography",
+                "DIY & Maker",
+                "Gaming",
+                "Science",
+                "Sports",
+                "News & Opinions"
+            };
+
+            var existing = await db.Categories
+                .AsNoTracking()
+                .Select(c => new { c.Name, c.Slug })
+                .ToListAsync();
+
+            foreach (var name in defaults)
+            {
+                if (existing.Any(e => e.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                var slug = Slugify(name);
+                var i = 1;
+                var baseSlug = slug;
+                while (await db.Categories.AnyAsync(c => c.Slug == slug))
+                {
+                    slug = $"{baseSlug}-{i++}";
+                }
+
+                db.Categories.Add(new Category { Name = name, Slug = slug });
             }
+
+            if (db.ChangeTracker.HasChanges())
+                await db.SaveChangesAsync();
         }
     }
 }

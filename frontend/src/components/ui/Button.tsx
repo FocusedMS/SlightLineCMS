@@ -1,44 +1,49 @@
 import React from 'react'
 
-/**
- * A reusable button component with opinionated styling.  The button accepts a
- * `variant` prop to adjust its look: primary, secondary, outline or danger.
- * Motion effects provide subtle feedback on hover and active states.  Pass
- * through any native button attributes via rest props.
- */
 export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'outline' | 'danger'
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+  iconOnly?: boolean
 }
 
 export const Button: React.FC<ButtonProps & { asChild?: boolean }> = ({
   variant = 'primary',
+  size = 'md',
+  iconOnly = false,
   className = '',
   type = 'button',
   asChild = false,
   children,
   ...rest
 }) => {
-  const base =
-    'inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-transform transition-colors duration-150 ease-out focus:outline-none'
-  let variantClass = ''
+  const base = 'inline-flex items-center justify-center gap-2 rounded-[18px] font-medium transition focus:outline-none focus:shadow-focus disabled:opacity-60 disabled:pointer-events-none'
+  const sizeCls = iconOnly
+    ? 'h-9 w-9'
+    : size === 'sm'
+      ? 'h-9 px-3'
+      : size === 'lg'
+        ? 'h-12 px-6'
+        : 'h-10 px-5'
+
+  let variantCls = ''
   switch (variant) {
     case 'primary':
-      variantClass = 'bg-brand-600 text-white hover:bg-brand-700 active:scale-95'
+      variantCls = 'bg-brand-600 hover:bg-brand-500 text-white shadow-card'
       break
     case 'secondary':
-      variantClass = 'bg-gray-200 text-gray-800 hover:bg-gray-300 active:scale-95'
+      variantCls = 'bg-bg-raised hover:bg-bg-subtle border border-white/10 text-white'
       break
-    case 'outline':
-      variantClass = 'border border-gray-300 text-gray-700 hover:bg-gray-100 active:scale-95'
+    case 'ghost':
+      variantCls = 'hover:bg-white/5 text-white'
       break
     case 'danger':
-      variantClass = 'bg-red-600 text-white hover:bg-red-700 active:scale-95'
+      variantCls = 'bg-rose-600 hover:bg-rose-500 text-white'
       break
     default:
-      variantClass = ''
+      variantCls = ''
   }
 
-  const classes = `${base} ${variantClass} ${className}`.trim()
+  const classes = `${base} ${sizeCls} ${variantCls} ${className}`.trim()
 
   if (asChild && React.isValidElement(children)) {
     return React.cloneElement(children, {

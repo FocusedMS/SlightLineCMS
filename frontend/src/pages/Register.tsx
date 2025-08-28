@@ -25,7 +25,7 @@ export default function Register() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto py-6">
       <Card className="space-y-4">
         <h1 className="text-2xl font-semibold">Create your account</h1>
         <div className="space-y-2">

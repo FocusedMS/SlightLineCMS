@@ -31,7 +31,7 @@ export default function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto">
+    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto py-6">
       <Card className="space-y-4">
         <h1 className="text-2xl font-semibold">Welcome back</h1>
         <div className="space-y-2">
@@ -51,7 +51,7 @@ export default function Login() {
         <Button type="submit" variant="primary" disabled={loading} className="w-full">
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
-        <div className="text-xs text-gray-500 mt-2">
+        <div className="text-xs" style={{ color: 'var(--muted)' }}>
           blogger: <code>madhu@example.com / Madhu@123</code>
           <br />
           admin: <code>admin / Admin@123</code>
