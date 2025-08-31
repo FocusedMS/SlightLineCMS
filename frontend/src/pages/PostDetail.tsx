@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { Helmet } from 'react-helmet-async'
 import { Skeleton } from '../components/ui/Skeleton'
+import { Container } from '../components/layout/Container'
 
 export default function PostDetail() {
   const { slug } = useParams()
@@ -12,18 +13,21 @@ export default function PostDetail() {
   })
 
   if (isLoading) return (
-    <article className="card p-6 space-y-4">
-      <Skeleton className="h-8 w-2/3" />
-      <Skeleton className="h-64 w-full" />
-      <Skeleton className="h-4 w-full" />
-      <Skeleton className="h-4 w-5/6" />
-    </article>
+    <Container size="content">
+      <article className="card p-6 space-y-4">
+        <Skeleton className="h-8 w-2/3" />
+        <Skeleton className="h-64 w-full" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+      </article>
+    </Container>
   )
 
   if (!data) return null
 
   return (
-    <article className="prose max-w-none card p-6">
+    <Container size="content">
+      <article className="prose max-w-none card p-6">
       <Helmet>
         <title>{data.title} • Sightline</title>
         <meta name="description" content={data.excerpt || data.title} />
@@ -36,6 +40,7 @@ export default function PostDetail() {
       <h1>{data.title}</h1>
       {data.coverImageUrl && <img loading="lazy" src={`${import.meta.env.VITE_API_BASE_URL}${data.coverImageUrl}`} alt="" className="rounded-lg" />}
       <div className="leading-8" dangerouslySetInnerHTML={{ __html: data.contentHtml }} />
-    </article>
+      </article>
+    </Container>
   )
 }

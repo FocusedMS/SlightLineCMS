@@ -93,6 +93,7 @@ import { Card } from '../components/ui/Card'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
 import { Button } from '../components/ui/Button'
+import { Container } from '../components/layout/Container'
 
 const schema = z.object({
   title: z.string()
@@ -423,8 +424,9 @@ export default function Editor() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Container size="full" className="py-6">
+        <Container size="wide">
         {/* Premium Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
@@ -972,7 +974,8 @@ export default function Editor() {
             </Card>
           </aside>
         </div>
-      </div>
+        </Container>
+      </Container>
     </div>
   )
 }

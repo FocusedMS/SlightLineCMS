@@ -9,6 +9,7 @@ import { Badge } from '../components/ui/Badge'
 import { Modal } from '../components/ui/Modal'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
+import { Container } from '../components/layout/Container'
 
 type Post = {
   id: number
@@ -121,8 +122,9 @@ export default function Dashboard() {
   }, [posts, q, status, sortBy])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+      <Container size="full" className="py-6">
+        <Container size="wide">
         {/* Premium Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -329,7 +331,8 @@ export default function Dashboard() {
         >
           This action cannot be undone. The post will be permanently removed.
         </Modal>
-      </div>
+        </Container>
+      </Container>
     </div>
   )
 }

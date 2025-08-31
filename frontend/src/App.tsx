@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import { Suspense, lazy } from 'react'
+import { Container } from './components/layout/Container'
 const Home = lazy(() => import('./pages/Home'))
 const Explore = lazy(() => import('./pages/Explore'))
 const PostDetail = lazy(() => import('./pages/PostDetail'))
@@ -17,7 +18,7 @@ export default function App() {
     <ErrorBoundary>
       <div className="min-h-screen flex flex-col relative bg-bg grid-bg">
         <Navbar />
-        <main className="container py-8 md:py-10 flex-1 relative z-10">
+        <main className="flex-1 relative z-10 py-8 md:py-10">
           <Suspense fallback={<div>Loading…</div>}>
           <Routes>
             <Route path="/" element={<Home/>} />
@@ -35,7 +36,7 @@ export default function App() {
           </Suspense>
         </main>
         <footer className="relative border-t" style={{ background: 'color-mix(in srgb, var(--surface) 85%, transparent)' }}>
-          <div className="container py-6 text-sm" style={{ color: 'var(--muted)' }}>© {new Date().getFullYear()} Sightline CMS — See the whole story. Publish with precision.</div>
+          <Container size="wide" className="py-6 text-sm" style={{ color: 'var(--muted)' }}>© {new Date().getFullYear()} Sightline CMS — See the whole story. Publish with precision.</Container>
         </footer>
       </div>
     </ErrorBoundary>

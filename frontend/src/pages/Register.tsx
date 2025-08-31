@@ -7,6 +7,7 @@ import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
 import { api } from '../lib/api'
 import { useNavigate } from 'react-router-dom'
+import { Container } from '../components/layout/Container'
 
 // Enhanced validation schema with comprehensive rules
 const schema = z.object({
@@ -124,8 +125,9 @@ export default function Register() {
   const passwordStrength = getPasswordStrength(password)
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto py-6">
-      <Card className="space-y-6">
+    <Container size="content" className="py-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+        <Card className="space-y-6">
         <h1 className="text-2xl font-semibold text-center">Create your account</h1>
         
         {/* Email Field */}
@@ -284,7 +286,8 @@ export default function Register() {
             </button>
           </p>
         </div>
-      </Card>
-    </form>
+        </Card>
+      </form>
+    </Container>
   )
 }

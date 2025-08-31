@@ -8,6 +8,7 @@ import { Input } from '../components/ui/Input'
 import { Button } from '../components/ui/Button'
 import { useNavigate } from 'react-router-dom'
 import type { RootState } from '../store'
+import { Container } from '../components/layout/Container'
 
 const schema = z.object({
   usernameOrEmail: z.string().min(3),
@@ -33,8 +34,9 @@ export default function Login() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="max-w-md mx-auto py-6">
-      <Card className="space-y-4">
+    <Container size="content" className="py-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full">
+        <Card className="space-y-4">
         <h1 className="text-2xl font-semibold">Welcome back</h1>
         <div className="space-y-2">
           <label className="label">Username or Email</label>
@@ -53,7 +55,8 @@ export default function Login() {
         <Button type="submit" variant="primary" disabled={loading} className="w-full">
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
-      </Card>
-    </form>
+        </Card>
+      </form>
+    </Container>
   )
 }

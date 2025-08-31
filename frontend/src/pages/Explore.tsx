@@ -6,6 +6,7 @@ import { Select } from '../components/ui/Select'
 import { Card } from '../components/ui/Card'
 import { Badge } from '../components/ui/Badge'
 import { api } from '../lib/api'
+import { Container } from '../components/layout/Container'
 
 interface Post {
   id: number
@@ -107,7 +108,8 @@ export default function Explore() {
   return (
     <div className="space-y-8">
       {/* Hero Section */}
-      <div className="text-center space-y-4">
+      <Container size="full" className="py-8 md:py-12">
+        <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
           <span className="bg-gradient-to-r from-brand-400 to-accent-cyan bg-clip-text text-transparent">
             Explore
@@ -117,9 +119,11 @@ export default function Explore() {
         <p className="text-xl text-text-soft max-w-2xl mx-auto">
           Discover insights, tutorials, and perspectives from our community of creators
         </p>
-      </div>
+        </div>
+      </Container>
 
       {/* Search and Filters */}
+      <Container size="wide">
       <Card className="p-6">
         <div className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
@@ -170,82 +174,85 @@ export default function Explore() {
             </div>
           )}
         </div>
-      </Card>
+        </Card>
+      </Container>
 
       {/* Posts Grid */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="p-6 animate-pulse">
-              <div className="space-y-4">
-                <div className="h-48 bg-bg-subtle rounded-lg"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-bg-subtle rounded w-3/4"></div>
-                  <div className="h-4 bg-bg-subtle rounded w-1/2"></div>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      ) : posts.length > 0 ? (
-        <>
+      <Container size="wide">
+        {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post: Post) => (
-              <PostCard 
-                key={post.id} 
-                id={post.id}
-                slug={post.slug}
-                title={post.title}
-                excerpt={post.excerpt}
-                coverImageUrl={post.coverImageUrl}
-              />
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="p-6 animate-pulse">
+                <div className="space-y-4">
+                  <div className="h-48 bg-bg-subtle rounded-lg"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-bg-subtle rounded w-3/4"></div>
+                    <div className="h-4 bg-bg-subtle rounded w-1/2"></div>
+                  </div>
+                </div>
+              </Card>
             ))}
           </div>
-          
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-2">
+        ) : posts.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {posts.map((post: Post) => (
+                <PostCard 
+                  key={post.id} 
+                  id={post.id}
+                  slug={post.slug}
+                  title={post.title}
+                  excerpt={post.excerpt}
+                  coverImageUrl={post.coverImageUrl}
+                />
+              ))}
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2">
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <span className="px-4 py-2 text-text-soft">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="secondary"
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <Card className="p-12 text-center">
+            <div className="space-y-4">
+              <div className="text-6xl">🔍</div>
+              <h3 className="text-xl font-semibold text-white">No posts found</h3>
+              <p className="text-text-soft">
+                Try adjusting your search terms or category filter
+              </p>
               <Button
                 variant="secondary"
-                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedCategory('')
+                  setCurrentPage(1)
+                }}
               >
-                Previous
-              </Button>
-              <span className="px-4 py-2 text-text-soft">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
+                Clear Filters
               </Button>
             </div>
-          )}
-        </>
-      ) : (
-        <Card className="p-12 text-center">
-          <div className="space-y-4">
-            <div className="text-6xl">🔍</div>
-            <h3 className="text-xl font-semibold text-white">No posts found</h3>
-            <p className="text-text-soft">
-              Try adjusting your search terms or category filter
-            </p>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setSearchTerm('')
-                setSelectedCategory('')
-                setCurrentPage(1)
-              }}
-            >
-              Clear Filters
-            </Button>
-          </div>
-        </Card>
-      )}
+          </Card>
+        )}
+      </Container>
     </div>
   )
 }

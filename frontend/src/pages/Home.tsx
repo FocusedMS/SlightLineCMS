@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import PostCard from '../components/PostCard'
+import { Container } from '../components/layout/Container'
 
 type Post = { 
   id: number; 
@@ -72,7 +73,8 @@ export default function Home() {
         />
       </Helmet>
       {/* Hero Section */}
-      <section className="relative overflow-hidden rounded-[18px] bg-bg-raised border border-white/8 p-8 md:p-12 shadow-card">
+      <Container size="full" className="py-8 md:py-12">
+        <section className="relative overflow-hidden rounded-[18px] bg-bg-raised border border-white/8 p-8 md:p-12 shadow-card">
         <div className="absolute inset-0 grid-bg opacity-20 pointer-events-none" />
         <div className="relative grid md:grid-cols-2 gap-8 items-center">
           <div className="space-y-6">
@@ -117,9 +119,11 @@ export default function Home() {
             </Card>
           </div>
         </div>
-      </section>
+        </section>
+      </Container>
       {/* Search Section */}
-      <div id="explore" className="space-y-4">
+      <Container size="wide">
+        <div id="explore" className="space-y-4">
         <div className="text-center space-y-2">
           <h2 className="text-2xl font-semibold text-white">Discover Stories</h2>
           <p className="text-text-soft">Search through our collection of published posts</p>
@@ -156,99 +160,102 @@ export default function Home() {
             </div>
           )}
         </Card>
-      </div>
-      {/* Posts Grid */}
-      {isFetching && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="p-6 animate-pulse">
-              <div className="space-y-4">
-                <div className="h-48 bg-bg-subtle rounded-[14px]"></div>
-                <div className="space-y-2">
-                  <div className="h-4 bg-bg-subtle rounded w-3/4"></div>
-                  <div className="h-4 bg-bg-subtle rounded w-1/2"></div>
-                </div>
-              </div>
-            </Card>
-          ))}
         </div>
-      )}
-      
-      {!isFetching && isError && (
-        <Card className="p-12 text-center">
-          <div className="space-y-4">
-            <div className="text-6xl">⚠️</div>
-            <h3 className="text-xl font-semibold text-white">Failed to load posts</h3>
-            <p className="text-text-soft">Please try again later</p>
-            <Button variant="secondary" onClick={() => window.location.reload()}>
-              Retry
-            </Button>
+      </Container>
+      {/* Posts Grid */}
+      <Container size="wide">
+        {isFetching && (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Card key={i} className="p-6 animate-pulse">
+                <div className="space-y-4">
+                  <div className="h-48 bg-bg-subtle rounded-[14px]"></div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-bg-subtle rounded w-3/4"></div>
+                    <div className="h-4 bg-bg-subtle rounded w-1/2"></div>
+                  </div>
+                </div>
+              </Card>
+            ))}
           </div>
-        </Card>
-      )}
-      
-      {!isFetching && !isError && data?.items && (
-        <>
-          {data.items.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-              {data.items.map((p: Post) => (
-                <PostCard 
-                  key={p.id} 
-                  id={p.id} 
-                  slug={p.slug} 
-                  title={p.title} 
-                  excerpt={p.excerpt}
-                  coverImageUrl={p.coverImageUrl}
-                />
-              ))}
+        )}
+        
+        {!isFetching && isError && (
+          <Card className="p-12 text-center">
+            <div className="space-y-4">
+              <div className="text-6xl">⚠️</div>
+              <h3 className="text-xl font-semibold text-white">Failed to load posts</h3>
+              <p className="text-text-soft">Please try again later</p>
+              <Button variant="secondary" onClick={() => window.location.reload()}>
+                Retry
+              </Button>
             </div>
-          ) : (
-            <Card className="p-12 text-center">
-              <div className="space-y-4">
-                <div className="text-6xl">📝</div>
-                <h3 className="text-xl font-semibold text-white">No posts found</h3>
-                <p className="text-text-soft">
-                  {search ? `No posts match "${search}"` : 'No posts have been published yet.'}
-                </p>
-                {search && (
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setSearch('')
-                      setPage(1)
-                    }}
-                  >
-                    Clear search
-                  </Button>
-                )}
+          </Card>
+        )}
+        
+        {!isFetching && !isError && data?.items && (
+          <>
+            {data.items.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
+                {data.items.map((p: Post) => (
+                  <PostCard 
+                    key={p.id} 
+                    id={p.id} 
+                    slug={p.slug} 
+                    title={p.title} 
+                    excerpt={p.excerpt}
+                    coverImageUrl={p.coverImageUrl}
+                  />
+                ))}
               </div>
-            </Card>
-          )}
-          
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page <= 1}
-              >
-                Previous
-              </Button>
-              <span className="px-4 py-2 text-text-soft">
-                Page {page} of {totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
-        </>
-      )}
+            ) : (
+              <Card className="p-12 text-center">
+                <div className="space-y-4">
+                  <div className="text-6xl">📝</div>
+                  <h3 className="text-xl font-semibold text-white">No posts found</h3>
+                  <p className="text-text-soft">
+                    {search ? `No posts match "${search}"` : 'No posts have been published yet.'}
+                  </p>
+                  {search && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSearch('')
+                        setPage(1)
+                      }}
+                    >
+                      Clear search
+                    </Button>
+                  )}
+                </div>
+              </Card>
+            )}
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                >
+                  Previous
+                </Button>
+                <span className="px-4 py-2 text-text-soft">
+                  Page {page} of {totalPages}
+                </span>
+                <Button
+                  variant="secondary"
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </Container>
     </div>
   )
 }
