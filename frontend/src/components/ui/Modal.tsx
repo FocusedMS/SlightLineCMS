@@ -27,16 +27,22 @@ export const Modal: React.FC<ModalProps> = ({ open, title = 'Confirm', children,
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="w-[96%] max-w-md rounded-[18px] border border-white/10 bg-bg-raised shadow-card"
+            className="w-[96%] max-w-md rounded-[18px] border border-slate-200/50 dark:border-white/10 bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-2xl"
             onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
           >
-            <div className="p-5">
-              <h3 className="text-lg font-semibold text-white">{title}</h3>
-              {children && <div className="mt-2 text-text-dim">{children}</div>}
-              <div className="mt-4 flex justify-end gap-2">
-                <Button variant="ghost" onClick={onClose}>Cancel</Button>
+            <div className="p-6">
+              <h3 className="text-xl font-semibold text-slate-800 dark:text-white">{title}</h3>
+              {children && <div className="mt-3 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">{children}</div>}
+              <div className="mt-6 flex justify-end gap-3">
+                <Button variant="ghost" onClick={onClose} className="px-4 py-2">Cancel</Button>
                 {onConfirm && (
-                  <Button variant={danger ? 'danger' : 'primary'} onClick={() => { onConfirm(); onClose() }}>{confirmLabel}</Button>
+                  <Button 
+                    variant={danger ? 'outline' : 'primary'} 
+                    onClick={() => { onConfirm(); onClose() }}
+                    className={danger ? 'text-rose-600 dark:text-rose-400 border-rose-300/50 dark:border-rose-500/50 hover:bg-rose-50 dark:hover:bg-rose-500/10' : ''}
+                  >
+                    {confirmLabel}
+                  </Button>
                 )}
               </div>
             </div>

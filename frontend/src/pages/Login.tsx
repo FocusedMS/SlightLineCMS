@@ -20,6 +20,8 @@ export default function Login() {
   const nav = useNavigate()
   const dispatch = useDispatch()
   const loading = useSelector((s:RootState)=>s.auth.loading)
+  
+
 
   const onSubmit = async (data: Form) => {
     try {
@@ -36,14 +38,14 @@ export default function Login() {
         <h1 className="text-2xl font-semibold">Welcome back</h1>
         <div className="space-y-2">
           <label className="label">Username or Email</label>
-          <Input placeholder="madhu@example.com" {...register('usernameOrEmail')} />
+          <Input placeholder="Enter your username or email address" {...register('usernameOrEmail')} />
           {errors.usernameOrEmail && (
             <p className="text-red-500 text-sm">{errors.usernameOrEmail.message}</p>
           )}
         </div>
         <div className="space-y-2">
           <label className="label">Password</label>
-          <Input type="password" placeholder="••••••••" {...register('password')} />
+          <Input type="password" placeholder="Enter your password" {...register('password')} />
           {errors.password && (
             <p className="text-red-500 text-sm">{errors.password.message}</p>
           )}
@@ -51,11 +53,6 @@ export default function Login() {
         <Button type="submit" variant="primary" disabled={loading} className="w-full">
           {loading ? 'Signing in…' : 'Sign in'}
         </Button>
-        <div className="text-xs" style={{ color: 'var(--muted)' }}>
-          blogger: <code>madhu@example.com / Madhu@123</code>
-          <br />
-          admin: <code>admin / Admin@123</code>
-        </div>
       </Card>
     </form>
   )

@@ -2,7 +2,7 @@ import { useParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../lib/api'
 import { Helmet } from 'react-helmet-async'
-import Skeleton from '../components/ui/Skeleton'
+import { Skeleton } from '../components/ui/Skeleton'
 
 export default function PostDetail() {
   const { slug } = useParams()

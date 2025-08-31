@@ -22,10 +22,10 @@ function initialsFrom(name?: string, email?: string) {
 function RolePill({ role }: { role?: string }) {
   const isAdmin = role?.toLowerCase() === "admin";
   const cls = isAdmin
-    ? "bg-indigo-500/15 text-indigo-300"
-    : "bg-emerald-500/15 text-emerald-300";
+    ? "bg-gradient-to-r from-purple-500/20 to-blue-500/20 text-purple-300 border border-purple-500/30"
+    : "bg-gradient-to-r from-emerald-500/20 to-teal-500/20 text-emerald-300 border border-emerald-500/30";
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
+    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${cls}`}>
       {role || "Guest"}
     </span>
   );
@@ -56,69 +56,84 @@ export default function UserMenu({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="group inline-flex items-center gap-3 rounded-2xl bg-slate-800/60
-                   hover:bg-slate-800 px-3 py-2 ring-1 ring-white/10 transition"
+        className="group relative inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-slate-800/60 to-slate-700/60
+                   hover:from-slate-800 hover:to-slate-700 px-4 py-3 border border-white/10 transition-all duration-200 hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/10"
       >
-        <span
-          className="grid h-8 w-8 place-items-center rounded-full
-                     bg-gradient-to-br from-indigo-500 to-blue-500
-                     text-white text-sm font-bold"
-        >
-          {initials}
-        </span>
-        <span className="flex flex-col items-start leading-tight">
-          <span className="text-slate-100 text-sm font-semibold truncate max-w-[12rem]">
+        <div className="relative">
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-lg">
+            {initials}
+          </div>
+          <div className="absolute -inset-1 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300 -z-10"></div>
+        </div>
+        <div className="flex flex-col items-start leading-tight">
+          <span className="text-white text-sm font-semibold truncate max-w-[12rem]">
             {name || email || "User"}
           </span>
           <RolePill role={role} />
-        </span>
-        <span className="ml-1 text-slate-400 group-hover:text-slate-200">▾</span>
+        </div>
+        <div className="ml-2 text-slate-400 group-hover:text-slate-200 transition-colors duration-200">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
       </button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-2xl
-                     bg-slate-900/95 backdrop-blur ring-1 ring-white/10 shadow-2xl"
+          className="absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-2xl
+                     bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur-xl border border-white/10 shadow-2xl"
         >
-          <div className="px-4 py-3 border-b border-white/10">
-            <div className="text-slate-100 font-medium truncate">{name || email}</div>
-            <div className="text-slate-400 text-xs truncate">{email}</div>
+          <div className="px-6 py-4 border-b border-white/10">
+            <div className="text-white font-semibold truncate text-lg">{name || email}</div>
+            <div className="text-slate-400 text-sm truncate mt-1">{email}</div>
           </div>
 
-          <nav className="p-1 text-sm">
+          <nav className="p-2 text-sm">
             {showMyPosts && (
               <Link
                 to="/dashboard"
-                className="block rounded-xl px-3 py-2 text-slate-200 hover:bg-white/5"
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-200 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 transition-all duration-200"
                 onClick={() => setOpen(false)}
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
                 My Posts
               </Link>
             )}
             {showModeration && (
               <Link
                 to="/moderation"
-                className="block rounded-xl px-3 py-2 text-slate-200 hover:bg-white/5"
+                className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-200 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 transition-all duration-200"
                 onClick={() => setOpen(false)}
               >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
                 Moderation
               </Link>
             )}
             <Link
               to="/editor"
-              className="block rounded-xl px-3 py-2 text-slate-200 hover:bg-white/5"
+              className="flex items-center gap-3 rounded-xl px-4 py-3 text-slate-200 hover:text-white hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 transition-all duration-200"
               onClick={() => setOpen(false)}
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
               New Post
             </Link>
           </nav>
 
-          <div className="border-t border-white/10 p-1">
+          <div className="border-t border-white/10 p-2">
             <button
               onClick={onLogout}
-              className="w-full rounded-xl px-3 py-2 text-left text-rose-300 hover:bg-rose-500/10"
+              className="w-full flex items-center gap-3 rounded-xl px-4 py-3 text-left text-rose-300 hover:text-rose-200 hover:bg-gradient-to-r hover:from-rose-500/10 hover:to-pink-500/10 transition-all duration-200"
             >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
               Logout
             </button>
           </div>

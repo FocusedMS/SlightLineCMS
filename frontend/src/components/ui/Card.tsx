@@ -1,22 +1,13 @@
 import React from 'react'
 
-/**
- * A card component providing padding, border and rounded corners.  Useful for
- * grouping related content sections.  Accepts custom className for
- * additional styling.  Cards are responsive and cast a small shadow on
- * hover for depth.
- */
-export type CardProps = React.HTMLAttributes<HTMLDivElement> & {
-  className?: string
+export type CardProps = {
   children: React.ReactNode
+  className?: string
 }
 
-export const Card: React.FC<CardProps> = ({ className = '', children, ...rest }) => {
+export const Card: React.FC<CardProps> = ({ children, className = '' }) => {
   return (
-    <div
-      className={`rounded-[18px] border p-6 shadow-card bg-bg-raised border-white/10 ${className}`}
-      {...rest}
-    >
+    <div className={`rounded-[18px] border p-6 shadow-card bg-white/90 dark:bg-slate-900/90 border-slate-200/50 dark:border-white/10 backdrop-blur ${className}`}>
       {children}
     </div>
   )

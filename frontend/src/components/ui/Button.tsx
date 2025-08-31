@@ -1,59 +1,58 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
-export type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+export type ButtonProps = {
+  children: React.ReactNode
+  variant?: 'primary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
-  iconOnly?: boolean
+  asChild?: boolean
+  className?: string
+  onClick?: () => void
+  disabled?: boolean
+  type?: 'button' | 'submit' | 'reset'
 }
 
-export const Button: React.FC<ButtonProps & { asChild?: boolean }> = ({
-  variant = 'primary',
-  size = 'md',
-  iconOnly = false,
-  className = '',
-  type = 'button',
+export const Button: React.FC<ButtonProps> = ({ 
+  children, 
+  variant = 'primary', 
+  size = 'md', 
   asChild = false,
-  children,
-  ...rest
+  className = '',
+  onClick,
+  disabled = false,
+  type = 'button'
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-[18px] font-medium transition focus:outline-none focus:shadow-focus disabled:opacity-60 disabled:pointer-events-none'
-  const sizeCls = iconOnly
-    ? 'h-9 w-9'
-    : size === 'sm'
-      ? 'h-9 px-3'
-      : size === 'lg'
-        ? 'h-12 px-6'
-        : 'h-10 px-5'
-
-  let variantCls = ''
-  switch (variant) {
-    case 'primary':
-      variantCls = 'bg-brand-600 hover:bg-brand-500 text-white shadow-card'
-      break
-    case 'secondary':
-      variantCls = 'bg-bg-raised hover:bg-bg-subtle border border-white/10 text-white'
-      break
-    case 'ghost':
-      variantCls = 'hover:bg-white/5 text-white'
-      break
-    case 'danger':
-      variantCls = 'bg-rose-600 hover:bg-rose-500 text-white'
-      break
-    default:
-      variantCls = ''
+  const baseClasses = 'inline-flex items-center justify-center rounded-[18px] font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-60 disabled:pointer-events-none'
+  
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base'
   }
-
-  const classes = `${base} ${sizeCls} ${variantCls} ${className}`.trim()
-
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children, {
-      className: `${classes} ${children.props.className ?? ''}`.trim(),
-      ...rest,
-    })
+  
+  const variantClasses = {
+    primary: 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl hover:shadow-purple-500/25 focus:ring-purple-500/50',
+    outline: 'bg-white/80 dark:bg-slate-800/80 border border-slate-300/50 dark:border-white/10 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 focus:ring-slate-500/50',
+    ghost: 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 focus:ring-slate-500/50'
   }
-
+  
+  const classes = `${baseClasses} ${sizeClasses[size]} ${variantClasses[variant]} ${className}`
+  
+  if (asChild) {
+    return (
+      <Link to="#" className={classes} onClick={onClick}>
+        {children}
+      </Link>
+    )
+  }
+  
   return (
-    <button type={type} className={classes} {...rest}>
+    <button 
+      type={type}
+      className={classes} 
+      onClick={onClick}
+      disabled={disabled}
+    >
       {children}
     </button>
   )

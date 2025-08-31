@@ -35,12 +35,25 @@ export default function Explore() {
   const [selectedCategory, setSelectedCategory] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [sortBy, setSortBy] = useState('publishedAt')
+  const [totalPosts, setTotalPosts] = useState(0)
+
+
+  // Debounced search effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchTerm !== '') {
+        setCurrentPage(1)
+        fetchPosts()
+      }
+    }, 500)
+
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
   useEffect(() => {
     fetchCategories()
     fetchPosts()
-  }, [currentPage, selectedCategory, sortBy])
+  }, [currentPage, selectedCategory])
 
   const fetchCategories = async () => {
     try {
@@ -56,18 +69,21 @@ export default function Explore() {
       setLoading(true)
       const params = new URLSearchParams({
         page: currentPage.toString(),
-        pageSize: '12',
-        sortBy,
-        status: '2' // Published posts only
+        pageSize: '12'
       })
+      
+      if (searchTerm.trim()) {
+        params.append('search', searchTerm.trim())
+      }
       
       if (selectedCategory) {
         params.append('categoryId', selectedCategory)
       }
       
       const response = await api.get(`/api/Posts?${params}`)
-      setPosts(response.data.items || response.data)
-      setTotalPages(response.data.totalPages || 1)
+      setPosts(response.data.items || [])
+      setTotalPosts(response.data.total || 0)
+      setTotalPages(Math.ceil((response.data.total || 0) / 12))
     } catch (error) {
       console.error('Failed to fetch posts:', error)
     } finally {
@@ -75,24 +91,16 @@ export default function Explore() {
     }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setCurrentPage(1)
-    // TODO: Implement search API endpoint
-    fetchPosts()
-  }
 
-  const filteredPosts = posts.filter(post => 
-    post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    post.excerpt.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+
+
 
   const getStatusBadge = (status: number) => {
     switch (status) {
-      case 2: return <Badge status="published">Published</Badge>
-      case 1: return <Badge status="pending">Pending</Badge>
-      case 0: return <Badge status="draft">Draft</Badge>
-      default: return <Badge status="neutral">Unknown</Badge>
+      case 2: return <Badge variant="published">Published</Badge>
+      case 1: return <Badge variant="pending">Pending</Badge>
+      case 0: return <Badge variant="draft">Draft</Badge>
+      default: return <Badge variant="draft">Unknown</Badge>
     }
   }
 
@@ -113,12 +121,12 @@ export default function Explore() {
 
       {/* Search and Filters */}
       <Card className="p-6">
-        <form onSubmit={handleSearch} className="space-y-4">
+        <div className="space-y-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <Input
                 type="text"
-                placeholder="Search posts..."
+                placeholder="Search posts by title or excerpt..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full"
@@ -138,22 +146,30 @@ export default function Explore() {
                 ))}
               </Select>
             </div>
-            <div className="w-full md:w-48">
-              <Select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="w-full"
-              >
-                <option value="publishedAt">Latest</option>
-                <option value="createdAt">Newest</option>
-                <option value="title">Title A-Z</option>
-              </Select>
-            </div>
-            <Button type="submit" variant="primary">
-              Search
-            </Button>
           </div>
-        </form>
+          
+          {/* Results count and clear filters */}
+          {(searchTerm || selectedCategory) && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-text-soft">
+                {totalPosts} post{totalPosts !== 1 ? 's' : ''} found
+                {searchTerm && ` for "${searchTerm}"`}
+                {selectedCategory && ` in ${categories.find(c => c.id.toString() === selectedCategory)?.name}`}
+              </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm('')
+                  setSelectedCategory('')
+                  setCurrentPage(1)
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
+        </div>
       </Card>
 
       {/* Posts Grid */}
@@ -171,10 +187,10 @@ export default function Explore() {
             </Card>
           ))}
         </div>
-      ) : filteredPosts.length > 0 ? (
+      ) : posts.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPosts.map(post => (
+            {posts.map((post: Post) => (
               <PostCard 
                 key={post.id} 
                 id={post.id}
