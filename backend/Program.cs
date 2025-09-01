@@ -71,7 +71,18 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Blog CMS API",
         Version = "v1",
-        Description = "ASP.NET Core Web API for Blogging & CMS"
+        Description = "A comprehensive ASP.NET Core Web API for Blogging & Content Management System with features including user authentication, post management, SEO analysis, media uploads, and content moderation.",
+        Contact = new OpenApiContact
+        {
+            Name = "Blog CMS Team",
+            Email = "support@blogcms.com",
+            Url = new Uri("https://github.com/your-repo/blog-cms")
+        },
+        License = new OpenApiLicense
+        {
+            Name = "MIT License",
+            Url = new Uri("https://opensource.org/licenses/MIT")
+        }
     });
     
     // Debug: Log what controllers are being discovered
@@ -90,29 +101,67 @@ builder.Services.AddSwaggerGen(c =>
         Console.WriteLine($"XML file not found at: {xmlPath}");
     }
 
-    // Temporarily disable security to debug controller discovery
-    // c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    // {
-    //     Name = "Authorization",
-    //     Description = "Enter JWT as: Bearer {token}",
-    //     In = ParameterLocation.Header,
-    //     Type = SecuritySchemeType.Http,
-    //     Scheme = "bearer",
-    //     BearerFormat = "JWT",
-    //     Reference = new OpenApiReference
-    //     {
-    //         Type = ReferenceType.SecurityScheme,
-    //         Id = "Bearer"
-    //     }
-    // });
-    // c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    // {
-    //     { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, Array.Empty<string>() }
-    // });
-    
-    // Add JWT Authorize button to all endpoints
-    // Temporarily disabled to debug controller discovery
-    // c.OperationFilter<BlogCms.Api.Utils.SecurityRequirementsOperationFilter>(); 
+    // Add JWT Bearer authentication
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Description = "Enter JWT token as: Bearer {token}",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        Reference = new OpenApiReference
+        {
+            Type = ReferenceType.SecurityScheme,
+            Id = "Bearer"
+        }
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // Add operation filter for security requirements
+    c.OperationFilter<BlogCms.Api.Utils.SecurityRequirementsOperationFilter>();
+
+    // Add custom tags for better organization
+    c.TagActionsBy(api =>
+    {
+        if (api.GroupName != null)
+        {
+            return new[] { api.GroupName };
+        }
+
+        var controllerActionDescriptor = api.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
+        if (controllerActionDescriptor != null)
+        {
+            return new[] { controllerActionDescriptor.ControllerName };
+        }
+
+        return new[] { api.ActionDescriptor.DisplayName };
+    });
+
+    // Customize operation IDs
+    c.CustomOperationIds(apiDesc =>
+    {
+        return apiDesc.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor controllerActionDescriptor 
+            ? controllerActionDescriptor.ActionName 
+            : null;
+    });
+
+    // Add request/response examples
+    c.SwaggerGeneratorOptions.DescribeAllParametersInCamelCase = true;
 });
 
 // ---------- Auth ----------
@@ -164,8 +213,17 @@ app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog CMS API v1");
-    options.DocumentTitle = "Blog CMS API Docs";
+    options.DocumentTitle = "Blog CMS API Documentation";
     options.DisplayRequestDuration();
+    options.DisplayOperationId();
+    options.DefaultModelsExpandDepth(2);
+    options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Example);
+    options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+    options.EnableDeepLinking();
+    options.EnableFilter();
+    options.ShowExtensions();
+    options.InjectStylesheet("/swagger-ui/custom.css");
+    options.InjectJavascript("/swagger-ui/custom.js");
 });
 
 // ---------- Middleware order matters ----------

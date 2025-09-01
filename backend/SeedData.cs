@@ -10,8 +10,11 @@ namespace BlogCms.Api
     {
         public static async Task EnsureSeededAsync(BlogDbContext db)
         {
-            // Apply pending migrations if any
-            await db.Database.MigrateAsync();
+            // Apply pending migrations if any (skip for in-memory database)
+            if (db.Database.IsRelational())
+            {
+                await db.Database.MigrateAsync();
+            }
 
             // --- Roles (no explicit IDs; let SQL identity handle it) ---
             var roles = await db.Roles.ToListAsync();
@@ -35,7 +38,7 @@ namespace BlogCms.Api
                 {
                     Email = "admin@example.com",
                     Username = "admin",
-                    PasswordHash = BCryptNet.HashPassword("Admin@123")
+                    PasswordHash = BCryptNet.HashPassword("Admin@123456")
                 };
                 db.Users.Add(admin);
                 await db.SaveChangesAsync();

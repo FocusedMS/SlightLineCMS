@@ -81,9 +81,20 @@ export default function Dashboard() {
   })
   const remove = useMutation({
     mutationFn: async (id: number) => (await api.delete(`/api/Posts/${id}`)).data,
-    onSuccess: () => { toast.success('Deleted'); qc.invalidateQueries({ queryKey: ['my-posts'] }) },
-    onError: () => toast.error('Delete failed')
+    onSuccess: () => { 
+      toast.success('Deleted'); 
+      qc.invalidateQueries({ queryKey: ['my-posts'] });
+      setPendingDelete(null); // Close modal after successful deletion
+    },
+    onError: (e: any) => {
+      const errorMessage = e?.response?.data?.detail || e?.response?.data?.title || 'Delete failed'
+      toast.error(errorMessage)
+      setPendingDelete(null); // Close modal on error too
+    }
   })
+
+  // Note: Backend doesn't support unpublishing posts directly
+  // Users need to edit the post and change status manually
 
   const [q, setQ] = useState('')
   const [status, setStatus] = useState<'All' | 'Draft' | 'PendingReview' | 'Published' | 'Rejected'>('All')
@@ -123,8 +134,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <Container size="full" className="py-6">
-        <Container size="wide">
+      <Container size="xl" className="py-6">
         {/* Premium Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
@@ -249,31 +259,32 @@ export default function Dashboard() {
 
         {/* Posts Table */}
         <Card className="p-0 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          {/* Table Header */}
           <div className="sticky top-0 bg-gradient-to-r from-slate-900/95 to-slate-800/95 backdrop-blur border-b border-white/10 z-20">
-            <div className="grid items-center px-6 py-4 text-sm font-semibold text-slate-300 md:grid-cols-12 gap-4">
-              <div className="md:col-span-6 flex items-center gap-2">
+            <div className="grid grid-cols-[1fr,140px,180px,160px] md:grid-cols-[1fr,160px,200px,180px] items-center gap-4 md:gap-6 px-4 sm:px-6 lg:px-10 py-4 md:py-5">
+              <div className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                Title
+                <span className="text-sm font-semibold text-slate-300">Title</span>
               </div>
-              <div className="md:col-span-2 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Status
+                <span className="text-sm font-semibold text-slate-300">Status</span>
               </div>
-              <div className="md:col-span-2 flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                Updated
+                <span className="text-sm font-semibold text-slate-300">Updated</span>
               </div>
-              <div className="md:col-span-2 text-right flex items-center justify-end gap-2">
+              <div className="flex items-center justify-end gap-2">
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
                 </svg>
-                Actions
+                <span className="text-sm font-semibold text-slate-300">Actions</span>
               </div>
             </div>
           </div>
@@ -331,7 +342,8 @@ export default function Dashboard() {
         >
           This action cannot be undone. The post will be permanently removed.
         </Modal>
-        </Container>
+
+
       </Container>
     </div>
   )
@@ -351,127 +363,131 @@ function BadgeCount({ label, value, variant, onClick }: { label: string; value: 
 
 function Row({ post, onSubmit, onDelete }: { post: Post; onSubmit: () => void; onDelete: () => void }) {
   return (
-    <div className="grid items-center px-6 py-5 transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 border-b border-white/5 last:border-b-0 md:grid-cols-12 gap-4 group">
+    <div className="grid grid-cols-1 md:grid-cols-[1fr,160px,200px,180px] items-center gap-4 md:gap-6 px-4 sm:px-6 lg:px-10 py-4 md:py-5 transition-all duration-200 hover:bg-gradient-to-r hover:from-slate-800/50 hover:to-slate-700/50 border-b border-white/5 last:border-b-0 group">
       {/* Title & Excerpt Column */}
-      <div className="md:col-span-5 min-w-0 space-y-3">
-        <div className="font-semibold text-white truncate group-hover:text-blue-100 transition-colors text-lg">
+      <div className="min-w-0 space-y-2">
+        <div className="font-semibold text-white group-hover:text-blue-100 transition-colors text-lg break-words overflow-hidden text-ellipsis line-clamp-2" title={post.title}>
           {post.title}
         </div>
-        <div className="text-sm text-slate-400 line-clamp-2 leading-relaxed pr-4">
+        <div className="text-sm text-slate-400 break-words leading-relaxed">
           {post.excerpt || 'No excerpt available'}
         </div>
       </div>
       
       {/* Status Column */}
-      <div className="md:col-span-2">
-        <div className="flex flex-col items-center justify-start space-y-3 py-2">
-          <div className="w-12 h-12 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-lg flex items-center justify-center border border-slate-600/50">
-            {post.status?.toLowerCase() === 'draft' && (
-              <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-            )}
-            {post.status?.toLowerCase() === 'pendingreview' && (
-              <svg className="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            )}
-            {post.status?.toLowerCase() === 'published' && (
-              <svg className="w-5 h-5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-              </svg>
-            )}
-            {post.status?.toLowerCase() === 'rejected' && (
-              <svg className="w-5 h-5 text-rose-400" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            )}
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-slate-400 uppercase tracking-wide font-medium">Status</div>
-            <div className="text-sm font-semibold text-slate-200 leading-tight">{getStatusLabel(post.status)}</div>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-gradient-to-br from-slate-700/50 to-slate-800/50 rounded-lg flex items-center justify-center border border-slate-600/50">
+          {post.status?.toLowerCase() === 'draft' && (
+            <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
+          )}
+          {post.status?.toLowerCase() === 'pendingreview' && (
+            <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          )}
+          {post.status?.toLowerCase() === 'published' && (
+            <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+          )}
+          {post.status?.toLowerCase() === 'rejected' && (
+            <svg className="w-4 h-4 text-rose-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          )}
         </div>
+        <div className="text-sm font-semibold text-slate-200">{getStatusLabel(post.status)}</div>
       </div>
       
       {/* Updated Column */}
-      <div className="md:col-span-2 text-sm text-slate-400">
-        <div className="flex flex-col items-center justify-start space-y-3 py-2">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-lg flex items-center justify-center border border-blue-500/30">
-            <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-blue-400 uppercase tracking-wide font-medium">Updated</div>
-            <div className="text-sm font-semibold text-slate-200 leading-tight">{fmt(post.updatedAt)}</div>
-          </div>
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-lg flex items-center justify-center border border-blue-500/30">
+          <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
         </div>
+        <div className="text-sm text-slate-400">{fmt(post.updatedAt)}</div>
       </div>
       
       {/* Actions Column */}
-      <div className="md:col-span-3 flex items-center justify-end gap-2">
-        <div className="flex flex-col items-center justify-start space-y-3 py-2">
-          <div className="flex flex-col items-center space-y-2">
-            {/* View Button - Only for published posts */}
-            {post.status?.toLowerCase() === 'published' && (
-              <Button
-                variant="outline"
-                size="sm"
-                asChild
-                className="text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/20 hover:border-emerald-400/60 font-medium px-4 py-2 h-10 w-20 bg-emerald-500/5 backdrop-blur shadow-sm"
-              >
-                <Link to={`/post/${post.slug}`} target="_blank">
-                  <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  View
-                </Link>
-              </Button>
-            )}
+      <div className="flex md:flex-col gap-2 md:gap-3 items-stretch">
+        {/* View Button - Available for all posts */}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            console.log('View button clicked for post:', post.id, 'Slug:', post.slug, 'Status:', post.status)
+            window.open(`/my-post/${post.slug}`, '_blank')
+          }}
+          className="inline-flex items-center justify-center h-9 md:h-10 min-w-[96px] md:min-w-[120px] px-3 gap-2 rounded-xl text-emerald-400 border-emerald-500/40 hover:bg-emerald-500/20 hover:border-emerald-400/60 font-medium bg-emerald-500/5 backdrop-blur shadow-sm w-full md:w-[120px]"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          View
+        </Button>
 
-            {/* Edit Button */}
+        {/* Edit Button */}
+        <Button
+          variant="outline"
+          size="sm"
+          asChild
+          className="inline-flex items-center justify-center h-9 md:h-10 min-w-[96px] md:min-w-[120px] px-3 gap-2 rounded-xl text-blue-400 border-blue-500/40 hover:bg-blue-500/20 hover:border-blue-400/60 font-medium bg-blue-500/5 backdrop-blur shadow-sm w-full md:w-[120px]"
+        >
+          <Link to={`/editor/${post.id}`}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          </Link>
+        </Button>
+
+        {/* Submit Button - Only for draft/rejected posts */}
+        {(post.status?.toLowerCase() === 'draft' || post.status?.toLowerCase() === 'rejected') && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onSubmit}
+            className="inline-flex items-center justify-center h-9 md:h-10 min-w-[96px] md:min-w-[120px] px-3 gap-2 rounded-xl text-amber-400 border-amber-500/40 hover:bg-amber-500/20 hover:border-amber-400/60 font-medium bg-amber-500/5 backdrop-blur shadow-sm w-full md:w-[120px]"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+            Submit
+          </Button>
+        )}
+
+        {/* Submit Button - Disabled for pending review */}
+        {post.status?.toLowerCase() === 'pendingreview' && (
+          <div title="Already submitted for review">
             <Button
               variant="outline"
               size="sm"
-              asChild
-              className="text-blue-400 border-blue-500/40 hover:bg-blue-500/20 hover:border-blue-400/60 font-medium px-4 py-2 h-10 w-20 bg-blue-500/5 backdrop-blur shadow-sm"
+              disabled
+              className="inline-flex items-center justify-center h-9 md:h-10 min-w-[96px] md:min-w-[120px] px-3 gap-2 rounded-xl text-slate-400 border-slate-500/40 bg-slate-500/5 backdrop-blur shadow-sm w-full md:w-[120px] opacity-60 cursor-not-allowed"
             >
-              <Link to={`/editor/${post.id}`}>
-                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </Link>
-            </Button>
-
-            {/* Submit Button - Only for draft/rejected posts */}
-            {(post.status?.toLowerCase() === 'draft' || post.status?.toLowerCase() === 'rejected') && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onSubmit}
-                className="text-amber-400 border-amber-500/40 hover:bg-amber-500/20 hover:border-amber-400/60 font-medium px-4 py-2 h-10 w-20 bg-amber-500/5 backdrop-blur shadow-sm"
-              >
-                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                </svg>
-                Submit
-              </Button>
-            )}
-
-            {/* Delete Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onDelete}
-              className="text-rose-400 border-rose-500/40 hover:bg-rose-500/20 hover:border-rose-400/60 font-medium px-4 py-2 h-10 w-20 bg-rose-500/5 backdrop-blur shadow-sm"
-            >
-              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              Delete
+              Submitted
             </Button>
           </div>
+        )}
+
+        {/* Delete Button - Allow deletion of all posts */}
+        <div title={`Delete ${post.status} post`}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onDelete}
+            className="inline-flex items-center justify-center h-9 md:h-10 min-w-[96px] md:min-w-[120px] px-3 gap-2 rounded-xl text-rose-400 border-rose-500/40 hover:bg-rose-500/20 hover:border-rose-400/60 font-medium bg-rose-500/5 backdrop-blur shadow-sm w-full md:w-[120px]"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Delete
+          </Button>
         </div>
       </div>
     </div>
@@ -482,45 +498,33 @@ function SkeletonRows() {
   return (
     <>
       {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="grid items-center px-8 py-8 border-b border-slate-200/50 dark:border-white/5 last:border-b-0 md:grid-cols-12 gap-6">
+        <div key={i} className="grid grid-cols-1 md:grid-cols-[1fr,160px,200px,180px] items-center gap-4 md:gap-6 px-4 sm:px-6 lg:px-10 py-4 md:py-5 border-b border-white/5 last:border-b-0">
           {/* Title & Excerpt Column */}
-          <div className="md:col-span-6 min-w-0 space-y-4">
-            <div className="h-6 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse"></div>
+          <div className="min-w-0 space-y-3">
+            <div className="h-6 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse"></div>
-              <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse w-3/4"></div>
+              <div className="h-4 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse"></div>
+              <div className="h-4 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse w-3/4"></div>
             </div>
           </div>
           
           {/* Status Column */}
-          <div className="md:col-span-2">
-            <div className="flex flex-col items-center justify-start space-y-4 py-2">
-              <div className="w-16 h-16 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-xl animate-pulse"></div>
-              <div className="space-y-2">
-                <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse w-12"></div>
-                <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse w-16"></div>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse"></div>
+            <div className="h-4 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse w-16"></div>
           </div>
           
           {/* Updated Column */}
-          <div className="md:col-span-2">
-            <div className="flex flex-col items-center justify-start space-y-4 py-2">
-              <div className="w-16 h-16 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-xl animate-pulse"></div>
-              <div className="space-y-2">
-                <div className="h-3 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse w-16"></div>
-                <div className="h-4 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-lg animate-pulse w-20"></div>
-              </div>
-            </div>
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse"></div>
+            <div className="h-4 bg-gradient-to-r from-slate-700 to-slate-600 rounded-lg animate-pulse w-20"></div>
           </div>
           
           {/* Actions Column */}
-          <div className="md:col-span-2 flex items-center justify-end gap-3">
-            <div className="flex flex-col items-center space-y-3">
-              <div className="h-12 w-24 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-xl animate-pulse"></div>
-              <div className="h-12 w-24 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-xl animate-pulse"></div>
-              <div className="h-12 w-24 bg-gradient-to-r from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 rounded-xl animate-pulse"></div>
-            </div>
+          <div className="flex md:flex-col gap-2 md:gap-3">
+            <div className="h-9 md:h-10 w-full md:w-[120px] bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl animate-pulse"></div>
+            <div className="h-9 md:h-10 w-full md:w-[120px] bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl animate-pulse"></div>
+            <div className="h-9 md:h-10 w-full md:w-[120px] bg-gradient-to-r from-slate-700 to-slate-600 rounded-xl animate-pulse"></div>
           </div>
         </div>
       ))}

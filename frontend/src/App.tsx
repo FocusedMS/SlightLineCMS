@@ -10,6 +10,8 @@ const Register = lazy(() => import('./pages/Register'))
 const Dashboard = lazy(() => import('./pages/Dashboard'))
 const Editor = lazy(() => import('./pages/Editor'))
 const Moderation = lazy(() => import('./pages/Moderation'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'))
+const UserManagement = lazy(() => import('./pages/UserManagement'))
 import { GuestRoute, AuthenticatedRoute, AdminRoute } from './components/RouteGuard'
 import { ErrorBoundary } from './components/ErrorBoundary'
 
@@ -24,6 +26,7 @@ export default function App() {
             <Route path="/" element={<Home/>} />
             <Route path="/explore" element={<Explore/>} />
             <Route path="/post/:slug" element={<PostDetail/>} />
+            <Route path="/my-post/:slug" element={<AuthenticatedRoute><PostDetail isMyPost={true}/></AuthenticatedRoute>} />
             <Route path="/login" element={<GuestRoute><Login/></GuestRoute>} />
             <Route path="/register" element={<GuestRoute><Register/></GuestRoute>} />
             {/* create */}
@@ -32,11 +35,15 @@ export default function App() {
             <Route path="/editor/:id" element={<AuthenticatedRoute><Editor/></AuthenticatedRoute>} />
             <Route path="/dashboard" element={<AuthenticatedRoute><Dashboard/></AuthenticatedRoute>} />
             <Route path="/moderation" element={<AdminRoute><Moderation/></AdminRoute>} />
+            <Route path="/admin" element={<AdminRoute><AdminDashboard/></AdminRoute>} />
+            <Route path="/admin/users" element={<AdminRoute><UserManagement/></AdminRoute>} />
           </Routes>
           </Suspense>
         </main>
         <footer className="relative border-t" style={{ background: 'color-mix(in srgb, var(--surface) 85%, transparent)' }}>
-          <Container size="wide" className="py-6 text-sm" style={{ color: 'var(--muted)' }}>© {new Date().getFullYear()} Sightline CMS — See the whole story. Publish with precision.</Container>
+          <Container size="wide" className="py-6 text-sm">
+            <div style={{ color: 'var(--muted)' }}>© {new Date().getFullYear()} Sightline CMS — See the whole story. Publish with precision.</div>
+          </Container>
         </footer>
       </div>
     </ErrorBoundary>

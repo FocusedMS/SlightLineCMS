@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace BlogCms.Api.DTOs;
 
@@ -23,11 +24,19 @@ public class RegisterRequest
     public string Username { get; set; } = string.Empty;
 
     /// <summary>
-    /// User's password (6-100 characters)
+    /// User's password (8-100 characters)
     /// </summary>
     [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [StringLength(100, MinimumLength = 8)]
     public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Response model for user registration
+/// </summary>
+public class RegisterResponse
+{
+    public string Message { get; set; } = "";
 }
 
 /// <summary>
@@ -43,7 +52,7 @@ public class LoginRequest
     public string UsernameOrEmail { get; set; } = string.Empty;
 
     [Required]
-    [StringLength(100, MinimumLength = 6)]
+    [StringLength(100, MinimumLength = 8)]
     public string Password { get; set; } = string.Empty;
 }
 
@@ -146,11 +155,122 @@ public record ModerationDecisionRequest(string? Reason);
 /// <summary>
 /// Request model for creating a new category
 /// </summary>
-public class CreateCategoryRequest
+public class CategoryCreateRequest
 {
     [Required]
     [StringLength(50, MinimumLength = 2)]
     public string Name { get; set; } = string.Empty;
+    
+    [StringLength(200)]
+    public string? Description { get; set; }
+}
+
+/// <summary>
+/// Request model for updating a category
+/// </summary>
+public class CategoryUpdateRequest
+{
+    [Required]
+    [StringLength(50, MinimumLength = 2)]
+    public string Name { get; set; } = string.Empty;
+    
+    [StringLength(200)]
+    public string? Description { get; set; }
+}
+
+/// <summary>
+/// Response model for category data
+/// </summary>
+public class CategoryResponse
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = "";
+    public string Slug { get; set; } = "";
+    public string? Description { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+// Media
+/// <summary>
+/// Request model for media upload
+/// </summary>
+public class MediaUploadRequest
+{
+    /// <summary>
+    /// The file to upload
+    /// </summary>
+    [Required] 
+    public IFormFile File { get; set; } = default!;
+    
+    /// <summary>
+    /// Optional folder to store the file in (defaults to "posts")
+    /// </summary>
+    public string? Folder { get; set; } = "posts";
+    
+    /// <summary>
+    /// Optional alt text for the uploaded image
+    /// </summary>
+    public string? Alt { get; set; }
+}
+
+/// <summary>
+/// Response model for media data
+/// </summary>
+public class MediaResponse
+{
+    public int Id { get; set; }
+    public string FileName { get; set; } = "";
+    public string FilePath { get; set; } = "";
+    public string ContentType { get; set; } = "";
+    public long FileSize { get; set; }
+    public DateTime UploadedAt { get; set; }
+    public int UploadedBy { get; set; }
+}
+
+/// <summary>
+/// Response model for media upload
+/// </summary>
+public class MediaUploadResponse
+{
+    public string FileName { get; set; } = "";
+    public string Url { get; set; } = "";
+    public int Width { get; set; }
+    public int Height { get; set; }
+    public string? Alt { get; set; }
+    public long Size { get; set; }
+}
+
+// SEO
+/// <summary>
+/// Request model for SEO analysis
+/// </summary>
+public class SeoAnalysisRequest
+{
+    public string Title { get; set; } = "";
+    public string? Excerpt { get; set; }
+    public string ContentHtml { get; set; } = "";
+    public string? FocusKeyword { get; set; }
+    public string? Slug { get; set; }
+}
+
+/// <summary>
+/// Response model for SEO analysis
+/// </summary>
+public class SeoAnalysisResponse
+{
+    public int Score { get; set; }
+    public List<SeoSuggestion> Suggestions { get; set; } = new();
+}
+
+/// <summary>
+/// SEO suggestion model
+/// </summary>
+public class SeoSuggestion
+{
+    public string Type { get; set; } = "";
+    public string Message { get; set; } = "";
+    public string Severity { get; set; } = "";
 }
 
 // Pagination
@@ -179,4 +299,181 @@ public class PagedResult<T>
     /// Total number of items across all pages
     /// </summary>
     public int Total { get; set; }
+}
+
+// Analytics DTOs
+/// <summary>
+/// Dashboard metrics for admin
+/// </summary>
+public class DashboardMetrics
+{
+    public PostMetrics Posts { get; set; } = new();
+    public UserMetrics Users { get; set; } = new();
+    public CategoryMetrics Categories { get; set; } = new();
+    public List<RecentPostDto> RecentPosts { get; set; } = new();
+    public List<RecentUserDto> RecentUsers { get; set; } = new();
+}
+
+/// <summary>
+/// Post-related metrics
+/// </summary>
+public class PostMetrics
+{
+    public int Total { get; set; }
+    public int Last24Hours { get; set; }
+    public int Last7Days { get; set; }
+    public int Last30Days { get; set; }
+    public int Published { get; set; }
+    public int Draft { get; set; }
+    public int PendingReview { get; set; }
+}
+
+/// <summary>
+/// User-related metrics
+/// </summary>
+public class UserMetrics
+{
+    public int Total { get; set; }
+    public int Last24Hours { get; set; }
+    public int Last7Days { get; set; }
+    public int Last30Days { get; set; }
+    public int Active { get; set; }
+    public int Inactive { get; set; }
+}
+
+/// <summary>
+/// Category-related metrics
+/// </summary>
+public class CategoryMetrics
+{
+    public int Total { get; set; }
+    public int WithPosts { get; set; }
+}
+
+/// <summary>
+/// Recent post information
+/// </summary>
+public class RecentPostDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Author { get; set; } = "";
+    public string Category { get; set; } = "";
+    public string Status { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Recent user information
+/// </summary>
+public class RecentUserDto
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Category statistics
+/// </summary>
+public class CategoryStatsDto
+{
+    public int CategoryId { get; set; }
+    public string CategoryName { get; set; } = "";
+    public int TotalPosts { get; set; }
+    public int PublishedPosts { get; set; }
+    public int DraftPosts { get; set; }
+    public int PendingPosts { get; set; }
+    public DateTime? LastPostDate { get; set; }
+}
+
+/// <summary>
+/// User activity statistics
+/// </summary>
+public class UserActivityDto
+{
+    public int UserId { get; set; }
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+    public bool IsActive { get; set; }
+    public int TotalPosts { get; set; }
+    public int PublishedPosts { get; set; }
+    public DateTime? LastPostDate { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// User post activity in recent days
+/// </summary>
+public class UserPostActivityDto
+{
+    public int UserId { get; set; }
+    public string Username { get; set; } = "";
+    public string Role { get; set; } = "";
+    public int PostsLast7Days { get; set; }
+    public int PublishedLast7Days { get; set; }
+    public int DraftLast7Days { get; set; }
+    public int PendingLast7Days { get; set; }
+}
+
+// User Management DTOs
+/// <summary>
+/// User management information
+/// </summary>
+public class UserManagementDto
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+    public bool IsActive { get; set; }
+    public int TotalPosts { get; set; }
+    public int PublishedPosts { get; set; }
+    public int DraftPosts { get; set; }
+    public int PendingPosts { get; set; }
+    public DateTime? LastPostDate { get; set; }
+    public DateTime CreatedAt { get; set; }
+}
+
+/// <summary>
+/// Detailed user information
+/// </summary>
+public class UserDetailDto
+{
+    public int Id { get; set; }
+    public string Username { get; set; } = "";
+    public string Email { get; set; } = "";
+    public string Role { get; set; } = "";
+    public bool IsActive { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public int TotalPosts { get; set; }
+    public int PublishedPosts { get; set; }
+    public int DraftPosts { get; set; }
+    public int PendingPosts { get; set; }
+    public List<UserPostDto> RecentPosts { get; set; } = new();
+}
+
+/// <summary>
+/// User post information
+/// </summary>
+public class UserPostDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = "";
+    public string Status { get; set; } = "";
+    public string Category { get; set; } = "";
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+}
+
+/// <summary>
+/// Request to toggle user status
+/// </summary>
+public class ToggleUserStatusRequest
+{
+    public bool IsActive { get; set; }
 }

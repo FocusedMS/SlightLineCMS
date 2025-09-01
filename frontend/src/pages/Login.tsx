@@ -12,7 +12,7 @@ import { Container } from '../components/layout/Container'
 
 const schema = z.object({
   usernameOrEmail: z.string().min(3),
-  password: z.string().min(6)
+  password: z.string().min(8)
 })
 type Form = z.infer<typeof schema>
 

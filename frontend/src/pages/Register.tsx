@@ -24,8 +24,10 @@ const schema = z.object({
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .max(100, 'Password must be less than 100 characters')
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/, 
-      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character')
+    .refine((val) => /[a-z]/.test(val), 'Password must contain at least one lowercase letter')
+    .refine((val) => /[A-Z]/.test(val), 'Password must contain at least one uppercase letter')
+    .refine((val) => /\d/.test(val), 'Password must contain at least one number')
+    .refine((val) => /[@$!%*?&]/.test(val), 'Password must contain at least one special character (@$!%*?&)')
 })
 
 type Form = z.infer<typeof schema>

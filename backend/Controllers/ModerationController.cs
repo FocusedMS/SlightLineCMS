@@ -8,18 +8,82 @@ using Microsoft.EntityFrameworkCore;
 namespace BlogCms.Api.Controllers;
 
 /// <summary>
-/// Controller for managing post moderation including approval and rejection workflows
+/// Controller for managing post moderation workflow including approval and rejection processes.
+/// Provides endpoints for content review, approval, and rejection with audit trail tracking.
 /// </summary>
 [ApiController]
 [ApiExplorerSettings(GroupName = "Moderation")]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
+[Produces("application/json")]
+[ProducesResponseType(typeof(ProblemDetails), 400)]
+[ProducesResponseType(typeof(ProblemDetails), 401)]
+[ProducesResponseType(typeof(ProblemDetails), 403)]
+[ProducesResponseType(typeof(ProblemDetails), 404)]
+[ProducesResponseType(typeof(ProblemDetails), 500)]
 public class ModerationController : ControllerBase
 {
     private readonly BlogDbContext db;
     public ModerationController(BlogDbContext db) { this.db = db; }
 
+    /// <summary>
+    /// Retrieves a paginated list of posts pending moderation review.
+    /// </summary>
+    /// <param name="status">Post status filter. Defaults to "PendingReview".</param>
+    /// <param name="page">Page number for pagination (1-based). Defaults to 1.</param>
+    /// <param name="pageSize">Number of posts per page. Defaults to 10, maximum 100.</param>
+    /// <returns>
+    /// <list type="bullet">
+    /// <item><description>200 OK - List of posts with moderation status and metadata.</description></item>
+    /// <item><description>400 Bad Request - Invalid pagination parameters.</description></item>
+    /// <item><description>401 Unauthorized - Missing or invalid authentication token.</description></item>
+    /// <item><description>403 Forbidden - User lacks Admin role.</description></item>
+    /// </list>
+    /// </returns>
+    /// <remarks>
+    /// This endpoint provides access to posts requiring moderation review:
+    /// 
+    /// **Supported Status Filters:**
+    /// - `PendingReview` - Posts submitted for review (default)
+    /// - `Draft` - Draft posts
+    /// - `Published` - Published posts
+    /// - `Rejected` - Rejected posts
+    /// 
+    /// **Features:**
+    /// - **Pagination**: Configurable page size with reasonable limits
+    /// - **Filtering**: Filter by post status
+    /// - **Ordering**: Posts ordered by creation date (oldest first)
+    /// - **Performance**: Uses database indexing for efficient queries
+    /// 
+    /// **Required Roles:** Admin
+    /// 
+    /// Example request:
+    /// <code>GET /api/Moderation/posts?status=PendingReview&amp;page=1&amp;pageSize=20</code>
+    /// 
+    /// Example response:
+    /// <code>
+    /// {
+    ///   "items": [
+    ///     {
+    ///       "id": 1,
+    ///       "title": "New Blog Post Title",
+    ///       "slug": "new-blog-post-title",
+    ///       "excerpt": "Post excerpt for preview...",
+    ///       "status": "PendingReview",
+    ///       "authorId": 1,
+    ///       "categoryId": 2,
+    ///       "createdAt": "2024-01-15T10:00:00Z",
+    ///       "updatedAt": "2024-01-15T10:30:00Z"
+    ///     }
+    ///   ],
+    ///   "page": 1,
+    ///   "pageSize": 20,
+    ///   "total": 5
+    /// }
+    /// </code>
+    /// </remarks>
     [HttpGet("posts")]
+    [ProducesResponseType(typeof(PagedResult<PostResponse>), 200)]
     public async Task<ActionResult<PagedResult<PostResponse>>> Pending(
         [FromQuery] string status = "PendingReview",
         [FromQuery] int page = 1,

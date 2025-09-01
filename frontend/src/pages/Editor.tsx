@@ -409,14 +409,14 @@ export default function Editor() {
   const isTitleValid = watchedTitle && watchedTitle.length >= 3 && watchedTitle.length <= 100
   const isExcerptValid = !watchedExcerpt || (watchedExcerpt.length > 0 && watchedExcerpt.length <= 300)
   const isKeywordValid = !watchedKeyword || (watchedKeyword.length > 0 && watchedKeyword.length <= 50)
-  const isContentValid = watch('contentHtml') && watch('contentHtml').replace(/<[^>]*>/g, '').trim().length >= 10
+  const isContentValid = watch('contentHtml') && (watch('contentHtml')?.replace(/<[^>]*>/g, '').trim().length || 0) >= 10
   
   // Form completion status
   const formCompletion = {
     title: isTitleValid ? 100 : (watchedTitle ? Math.min(100, (watchedTitle.length / 3) * 100) : 0),
     excerpt: watchedExcerpt ? Math.min(100, (watchedExcerpt.length / 300) * 100) : 0,
     keyword: watchedKeyword ? 100 : 0,
-    content: isContentValid ? 100 : (watch('contentHtml') ? Math.min(100, (watch('contentHtml').replace(/<[^>]*>/g, '').trim().length / 10) * 100) : 0)
+    content: isContentValid ? 100 : (watch('contentHtml') ? Math.min(100, ((watch('contentHtml')?.replace(/<[^>]*>/g, '').trim().length || 0) / 10) * 100) : 0)
   }
   
   const overallCompletion = Math.round(
@@ -716,6 +716,46 @@ export default function Editor() {
                   </Card>
                 </div>
 
+                {/* HTML Converter Section */}
+                <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+                  <div className="space-y-4">
+                    <label className="label flex items-center gap-2">
+                      <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                      </svg>
+                      <span className="text-lg font-semibold">HTML Converter</span>
+                      <span className="text-blue-400 text-sm">Paste HTML content to convert to blog post</span>
+                    </label>
+                    
+                    <div className="space-y-3">
+                      <textarea
+                        placeholder="Paste your HTML content here (including title, headings, paragraphs, etc.)..."
+                        className="w-full h-32 p-4 bg-slate-800/50 border border-slate-600/50 rounded-lg text-slate-200 placeholder-slate-400 focus:border-blue-500/50 focus:ring-blue-500/20 focus:outline-none transition-all duration-200 resize-none"
+                        onChange={(e) => {
+                          const htmlContent = e.target.value;
+                          if (htmlContent.trim()) {
+                            // Extract title from h1 tag
+                            const titleMatch = htmlContent.match(/<h1[^>]*>(.*?)<\/h1>/i);
+                            if (titleMatch) {
+                              setValue('title', titleMatch[1].replace(/<[^>]*>/g, '').trim());
+                            }
+                            
+                            // Set the HTML content
+                            setValue('contentHtml', htmlContent);
+                            scheduleSeo();
+                          }
+                        }}
+                      />
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>This will automatically extract the title from &lt;h1&gt; tags and set the content</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
                 {/* Content Editor Section */}
                 <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
                   <div className="space-y-4">
@@ -732,7 +772,7 @@ export default function Editor() {
                               ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
                               : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
                           }`}>
-                            {watch('contentHtml').replace(/<[^>]*>/g, '').trim().length} chars
+                            {watch('contentHtml')?.replace(/<[^>]*>/g, '').trim().length || 0} chars
                           </span>
                         )}
                         {isContentValid && (

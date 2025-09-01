@@ -5,11 +5,19 @@ import { Helmet } from 'react-helmet-async'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Container } from '../components/layout/Container'
 
-export default function PostDetail() {
+interface PostDetailProps {
+  isMyPost?: boolean
+}
+
+export default function PostDetail({ isMyPost = false }: PostDetailProps) {
   const { slug } = useParams()
+  
+  // Use different endpoint based on whether user is viewing their own post
+  const endpoint = isMyPost ? `/api/Posts/my/${slug}` : `/api/Posts/${slug}`
+  
   const { data, isLoading } = useQuery({
-    queryKey: ['post', slug],
-    queryFn: async () => (await api.get(`/api/Posts/${slug}`)).data
+    queryKey: ['post', slug, isMyPost],
+    queryFn: async () => (await api.get(endpoint)).data
   })
 
   if (isLoading) return (

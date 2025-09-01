@@ -21,6 +21,73 @@ body {
 /* Container & surface */
 .container { @apply px-4; }
 
+/* Content overflow handling */
+.prose {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+
+.prose * {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+
+/* Specific handling for long URLs and text */
+.prose a[href*="http"] {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  display: inline-block;
+  max-width: 100%;
+}
+
+.prose p {
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Handle extremely long URLs */
+.prose a[href*="http"] {
+  word-break: break-all;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  display: inline-block;
+}
+
+/* Ensure content doesn't overflow containers */
+.prose {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.prose * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Line clamp utilities for text truncation */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.line-clamp-3 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
 /* Light mode card styles */
 .card { 
   @apply rounded-[18px] shadow-lg border;
@@ -28,6 +95,8 @@ body {
   border-color: rgba(255, 255, 255, 0.2);
   backdrop-filter: blur(20px);
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 /* Dark mode card styles */
@@ -35,6 +104,8 @@ body {
   background: rgba(17, 24, 39, 0.9);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  overflow: hidden;
+  word-wrap: break-word;
 }
 
 /* Buttons */
@@ -214,11 +285,12 @@ body {
 /* Rich text */
 .prose img { max-width: 100%; height: auto; border-radius: 0.75rem; }
 .prose { color: var(--text); }
-.prose p { margin: 1em 0; line-height: 1.8; color: var(--text); }
+.prose p { margin: 1em 0; line-height: 1.8; color: var(--text); word-wrap: break-word; overflow-wrap: break-word; }
 .prose h1, .prose h2, .prose h3 { letter-spacing: -0.01em; }
 .prose blockquote { border-left: 4px solid var(--border); padding-left: 1rem; color: var(--muted); }
-.prose code { background: rgba(100, 116, 139, 0.1); padding: 2px 6px; border-radius: 6px; }
+.prose code { background: rgba(100, 116, 139, 0.1); padding: 2px 6px; border-radius: 6px; word-break: break-all; }
 .prose pre { background: rgba(100, 116, 139, 0.1); padding: 1rem; border-radius: 12px; overflow: auto; }
+.prose a { word-break: break-all; overflow-wrap: break-word; }
 
 .dark .prose code { background: rgba(154, 164, 178, 0.1); }
 .dark .prose pre { background: rgba(154, 164, 178, 0.1); }

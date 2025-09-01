@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import Card from '../components/ui/Card'
 import Button from '../components/ui/Button'
 import { Container } from '../components/layout/Container'
+import { Modal } from '../components/ui/Modal'
 
 type PendingPost = {
   id: number
@@ -20,67 +21,17 @@ type PendingResp = {
   pageSize: number
 }
 
-/** Small confirm toast (Yes/No) that resolves to boolean */
-function confirmToast(message: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const id = toast.custom((t) => (
-      <div className="card p-4 shadow-lg min-w-[280px]">
-        <div className="font-medium mb-3">{message}</div>
-        <div className="flex gap-2 justify-end">
-          <button
-            className="btn btn-outline"
-            onClick={() => { toast.dismiss(t.id); resolve(false) }}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => { toast.dismiss(t.id); resolve(true) }}
-          >
-            Yes
-          </button>
-        </div>
-      </div>
-    ), { duration: Infinity, id: `confirm-${Date.now()}` })
-  })
-}
-
-/** Prompt for a text (Reject reason). Returns string or null if canceled. */
-function promptToast(label: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    let value = ''
-    toast.custom((t) => (
-      <div className="card p-4 shadow-lg min-w-[320px]">
-        <div className="font-medium mb-2">{label}</div>
-        <input
-          className="input mb-3 w-full"
-          placeholder="Optional"
-          onChange={(e) => { value = e.currentTarget.value }}
-          autoFocus
-        />
-        <div className="flex gap-2 justify-end">
-          <button
-            className="btn btn-outline"
-            onClick={() => { toast.dismiss(t.id); resolve(null) }}
-          >
-            Cancel
-          </button>
-          <button
-            className="btn btn-primary"
-            onClick={() => { toast.dismiss(t.id); resolve(value) }}
-          >
-            Submit
-          </button>
-        </div>
-      </div>
-    ), { duration: Infinity })
-  })
-}
-
 export default function AdminModeration() {
   const qc = useQueryClient()
   const [page, setPage] = useState(1)
   const pageSize = 10
+  
+  // Modal state
+  const [showApproveModal, setShowApproveModal] = useState(false)
+  const [showRejectModal, setShowRejectModal] = useState(false)
+  const [selectedPost, setSelectedPost] = useState<PendingPost | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const pendingQ = useQuery({
     queryKey: ['moderation', 'pending', { page, pageSize }],
@@ -90,39 +41,85 @@ export default function AdminModeration() {
   const approve = useMutation({
     mutationFn: async (id: number) =>
       (await api.post(`/api/Moderation/posts/${id}/approve`)).data,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['moderation', 'pending'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['moderation', 'pending'] })
+      toast.success('Post approved successfully!')
+      setShowApproveModal(false)
+      setSelectedPost(null)
+    },
+    onError: (error) => {
+      toast.error('Failed to approve post. Please try again.')
+      console.error('Approve error:', error)
+    }
   })
 
   const reject = useMutation({
     mutationFn: async (args: { id: number; reason: string }) =>
       (await api.post(`/api/Moderation/posts/${args.id}/reject`, { reason: args.reason })).data,
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['moderation', 'pending'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['moderation', 'pending'] })
+      toast.success('Post rejected successfully!')
+      setShowRejectModal(false)
+      setSelectedPost(null)
+      setRejectReason('')
+    },
+    onError: (error) => {
+      toast.error('Failed to reject post. Please try again.')
+      console.error('Reject error:', error)
+    }
   })
 
-  const handleApprove = async (p: PendingPost) => {
-    const ok = await confirmToast(`Approve “${p.title}”?`)
-    if (!ok) return
-    await toast.promise(approve.mutateAsync(p.id), {
-      loading: 'Approving…',
-      success: 'Approved ✅',
-      error: 'Approve failed',
-    })
+  const handleApprove = (post: PendingPost) => {
+    setSelectedPost(post)
+    setShowApproveModal(true)
   }
 
-  const handleReject = async (p: PendingPost) => {
-    const ok = await confirmToast(`Reject “${p.title}”?`)
-    if (!ok) return
-    const reason = await promptToast('Rejection reason (optional)')
-    const finalReason = reason && reason.trim().length > 0 ? reason.trim() : ''
-    if (finalReason && finalReason.length < 10) {
+  const handleReject = (post: PendingPost) => {
+    setSelectedPost(post)
+    setRejectReason('')
+    setShowRejectModal(true)
+  }
+
+  const confirmApprove = async () => {
+    if (!selectedPost) return
+    
+    setIsSubmitting(true)
+    try {
+      await approve.mutateAsync(selectedPost.id)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const confirmReject = async () => {
+    if (!selectedPost) return
+    
+    // Validate reason if provided
+    if (rejectReason.trim() && rejectReason.trim().length < 10) {
       toast.error('Reason must be at least 10 characters, or leave it blank.')
       return
     }
-    await toast.promise(reject.mutateAsync({ id: p.id, reason: finalReason }), {
-      loading: 'Rejecting…',
-      success: finalReason ? `Rejected (reason noted) ❌` : 'Rejected ❌',
-      error: 'Reject failed',
-    })
+    
+    setIsSubmitting(true)
+    try {
+      await reject.mutateAsync({ 
+        id: selectedPost.id, 
+        reason: rejectReason.trim() 
+      })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const closeApproveModal = () => {
+    setShowApproveModal(false)
+    setSelectedPost(null)
+  }
+
+  const closeRejectModal = () => {
+    setShowRejectModal(false)
+    setSelectedPost(null)
+    setRejectReason('')
   }
 
   if (pendingQ.isLoading) return <div className="container py-8"><span className="spinner" /> Loading…</div>
@@ -137,7 +134,7 @@ export default function AdminModeration() {
           <h1 className="text-xl font-semibold">Moderation Queue</h1>
 
           {rows.length === 0 ? (
-            <Card className="text-sm" style={{ color: 'var(--muted)' }}>No posts waiting for review.</Card>
+            <Card className="text-sm text-gray-500 dark:text-gray-400">No posts waiting for review.</Card>
           ) : (
             <Card className="overflow-x-auto p-0">
               <table className="table">
@@ -157,16 +154,16 @@ export default function AdminModeration() {
                       <td>{new Date(p.updatedAt).toLocaleString()}</td>
                       <td className="flex flex-wrap gap-2 py-2">
                         <Button
-                          variant="success"
+                          variant="primary"
                           onClick={() => handleApprove(p)}
-                          disabled={approve.isPending || reject.isPending}
+                          disabled={approve.isPending || reject.isPending || isSubmitting}
                         >
                           {approve.isPending ? 'Approving…' : 'Approve'}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={() => handleReject(p)}
-                          disabled={approve.isPending || reject.isPending}
+                          disabled={approve.isPending || reject.isPending || isSubmitting}
                         >
                           {reject.isPending ? 'Rejecting…' : 'Reject'}
                         </Button>
@@ -185,6 +182,52 @@ export default function AdminModeration() {
           </div>
         </div>
       </Container>
+
+      {/* Approve Confirmation Modal */}
+      <Modal
+        open={showApproveModal}
+        title="Confirm Approval"
+        onClose={closeApproveModal}
+        onConfirm={confirmApprove}
+        confirmLabel={isSubmitting ? "Approving..." : "Yes, Approve"}
+        disabled={isSubmitting}
+      >
+        <p>Are you sure you want to approve "{selectedPost?.title}"?</p>
+        <p className="text-sm text-gray-500 mt-2">This will publish the post immediately.</p>
+      </Modal>
+
+      {/* Reject Confirmation Modal */}
+      <Modal
+        open={showRejectModal}
+        title="Confirm Rejection"
+        onClose={closeRejectModal}
+        onConfirm={confirmReject}
+        confirmLabel={isSubmitting ? "Rejecting..." : "Yes, Reject"}
+        danger={true}
+        disabled={isSubmitting}
+      >
+        <div className="space-y-4">
+          <p>Are you sure you want to reject "{selectedPost?.title}"?</p>
+          <div>
+            <label htmlFor="reject-reason" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Rejection Reason (optional)
+            </label>
+            <textarea
+              id="reject-reason"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              placeholder="Provide a reason for rejection (minimum 10 characters if provided)"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={3}
+            />
+            {rejectReason.trim() && rejectReason.trim().length < 10 && (
+              <p className="text-sm text-red-500 mt-1">
+                Reason must be at least 10 characters, or leave it blank.
+              </p>
+            )}
+          </div>
+        </div>
+      </Modal>
     </Container>
   )
 }
