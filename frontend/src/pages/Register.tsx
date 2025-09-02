@@ -27,7 +27,7 @@ const schema = z.object({
     .refine((val) => /[a-z]/.test(val), 'Password must contain at least one lowercase letter')
     .refine((val) => /[A-Z]/.test(val), 'Password must contain at least one uppercase letter')
     .refine((val) => /\d/.test(val), 'Password must contain at least one number')
-    .refine((val) => /[@$!%*?&]/.test(val), 'Password must contain at least one special character (@$!%*?&)')
+    .refine((val) => /[^A-Za-z0-9]/.test(val), 'Password must contain at least one symbol')
 })
 
 type Form = z.infer<typeof schema>
@@ -56,13 +56,13 @@ export default function Register() {
     mode: 'onChange' // Enable real-time validation
   })
   const nav = useNavigate()
-  const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isCheckingUsername, setIsCheckingUsername] = useState(false)
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
 
   const watchedEmail = watch('email')
   const watchedUsername = watch('username')
+  const watchedPassword = watch('password') || ''
 
   // Real-time email validation
   useEffect(() => {
@@ -78,12 +78,7 @@ export default function Register() {
     }
   }, [watchedUsername, trigger])
 
-  // Real-time password validation
-  useEffect(() => {
-    if (password.length > 0) {
-      trigger('password')
-    }
-  }, [password, trigger])
+  // Real-time password validation happens automatically via mode: 'onChange'
 
   // Check username availability (simulated - you can implement actual API call)
   const checkUsernameAvailability = async (username: string) => {
@@ -124,7 +119,7 @@ export default function Register() {
     }
   }
 
-  const passwordStrength = getPasswordStrength(password)
+  const passwordStrength = getPasswordStrength(watchedPassword)
 
   return (
     <Container size="content" className="py-6">
@@ -191,7 +186,7 @@ export default function Register() {
         <div className="space-y-2">
           <label className="label flex items-center justify-between">
             <span>Password</span>
-            {password && (
+            {watchedPassword && (
               <span className={`text-xs ${passwordStrength.color}`}>
                 {passwordStrength.strength}
               </span>
@@ -202,8 +197,7 @@ export default function Register() {
               type={showPassword ? 'text' : 'password'}
               placeholder="Create a strong password" 
               {...register('password')}
-              onChange={(e) => setPassword(e.target.value)}
-              className={password && !errors.password ? 'border-green-500/50' : ''}
+              className={watchedPassword && !errors.password ? 'border-green-500/50' : ''}
             />
             <button
               type="button"
@@ -215,7 +209,7 @@ export default function Register() {
           </div>
           
           {/* Password Strength Indicator */}
-          {password && (
+          {watchedPassword && (
             <div className="space-y-2">
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((level) => (
@@ -246,20 +240,20 @@ export default function Register() {
           <div className="text-xs text-slate-400 space-y-1">
             <p>Password must contain:</p>
             <ul className="space-y-1 ml-2">
-              <li className={password.length >= 8 ? 'text-green-500' : 'text-slate-500'}>
-                • At least 8 characters {password.length >= 8 ? '✓' : ''}
+              <li className={watchedPassword.length >= 8 ? 'text-green-500' : 'text-slate-500'}>
+                • At least 8 characters {watchedPassword.length >= 8 ? '✓' : ''}
               </li>
-              <li className={/[a-z]/.test(password) ? 'text-green-500' : 'text-slate-500'}>
-                • One lowercase letter {/[a-z]/.test(password) ? '✓' : ''}
+              <li className={/[a-z]/.test(watchedPassword) ? 'text-green-500' : 'text-slate-500'}>
+                • One lowercase letter {/[a-z]/.test(watchedPassword) ? '✓' : ''}
               </li>
-              <li className={/[A-Z]/.test(password) ? 'text-green-500' : 'text-slate-500'}>
-                • One uppercase letter {/[A-Z]/.test(password) ? '✓' : ''}
+              <li className={/[A-Z]/.test(watchedPassword) ? 'text-green-500' : 'text-slate-500'}>
+                • One uppercase letter {/[A-Z]/.test(watchedPassword) ? '✓' : ''}
               </li>
-              <li className={/\d/.test(password) ? 'text-green-500' : 'text-slate-500'}>
-                • One number {/\d/.test(password) ? '✓' : ''}
+              <li className={/\d/.test(watchedPassword) ? 'text-green-500' : 'text-slate-500'}>
+                • One number {/\d/.test(watchedPassword) ? '✓' : ''}
               </li>
-              <li className={/[@$!%*?&]/.test(password) ? 'text-green-500' : 'text-slate-500'}>
-                • One special character (@$!%*?&) {/[@$!%*?&]/.test(password) ? '✓' : ''}
+              <li className={/[^A-Za-z0-9]/.test(watchedPassword) ? 'text-green-500' : 'text-slate-500'}>
+                • One symbol (e.g. !@#$%^&*) {/[^A-Za-z0-9]/.test(watchedPassword) ? '✓' : ''}
               </li>
             </ul>
           </div>

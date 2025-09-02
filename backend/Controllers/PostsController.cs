@@ -11,20 +11,10 @@ using BlogCms.Api.Utils;
 
 namespace BlogCms.Api.Controllers;
 
-/// <summary>
-/// Controller for managing blog posts including CRUD operations, public listing, and content moderation workflow.
-/// Provides endpoints for creating, reading, updating, and deleting blog posts with role-based access control.
-/// </summary>
 [ApiController]
 [ApiExplorerSettings(GroupName = "Posts")]
 [Route("api/[controller]")]
 [Authorize] // default: auth required; selectively allow anon below
-[Produces("application/json")]
-[ProducesResponseType(typeof(ProblemDetails), 400)]
-[ProducesResponseType(typeof(ProblemDetails), 401)]
-[ProducesResponseType(typeof(ProblemDetails), 403)]
-[ProducesResponseType(typeof(ProblemDetails), 404)]
-[ProducesResponseType(typeof(ProblemDetails), 500)]
 public class PostsController : ControllerBase
 {
     private readonly BlogDbContext _db;
@@ -33,67 +23,22 @@ public class PostsController : ControllerBase
     // -------------------- Public read (Published only) ----------------------
 
     /// <summary>
-    /// Retrieves a paginated list of published blog posts for public consumption.
-    /// Supports searching, filtering by category, and implements HTTP caching with ETags.
+    /// Returns a paged list of published posts for the public home page.  Supports simple
+    /// searching on the title or excerpt.  Results are ordered by most recent
+    /// publication date.  Response includes an ETag header based off the latest
+    /// updated date so clients can perform conditional requests.  If the client
+    /// supplies an <c>If-None-Match</c> header that matches the computed ETag the
+    /// server will return 304 Not Modified to avoid transferring the same list
+    /// repeatedly.
     /// </summary>
-    /// <param name="search">Optional search term to filter posts by title or excerpt content.</param>
-    /// <param name="categoryId">Optional category ID to filter posts by specific category.</param>
-    /// <param name="page">Page number for pagination (1-based). Defaults to 1.</param>
-    /// <param name="pageSize">Number of posts per page. Defaults to 10, maximum 100.</param>
-    /// <returns>
-    /// <list type="bullet">
-    /// <item><description>200 OK - List of published posts with pagination metadata.</description></item>
-    /// <item><description>304 Not Modified - No changes since last request (when ETag matches).</description></item>
-    /// <item><description>400 Bad Request - Invalid pagination parameters.</description></item>
-    /// </list>
-    /// </returns>
-    /// <remarks>
-    /// This endpoint provides public access to published blog posts with the following features:
-    /// - **Caching**: Response includes ETag header for conditional requests
-    /// - **Search**: Full-text search across post titles and excerpts
-    /// - **Filtering**: Filter by category ID
-    /// - **Pagination**: Configurable page size with reasonable limits
-    /// - **Performance**: Uses database indexing for efficient queries
-    /// 
-    /// The response includes an ETag header based on the latest post update time.
-    /// Clients can send an `If-None-Match` header with the ETag value to receive
-    /// a 304 Not Modified response if no posts have changed.
-    /// 
-    /// Example request:
-    /// <code>GET /api/Posts?search=technology&amp;categoryId=2&amp;page=1&amp;pageSize=20</code>
-    /// 
-    /// Example response:
-    /// <code>
-    /// {
-    ///   "items": [
-    ///     {
-    ///       "id": 1,
-    ///       "title": "Getting Started with ASP.NET Core",
-    ///       "slug": "getting-started-with-aspnet-core",
-    ///       "excerpt": "Learn the basics of building web applications...",
-    ///       "contentHtml": "&lt;p&gt;ASP.NET Core is a modern web framework...&lt;/p&gt;",
-    ///       "status": "Published",
-    ///       "authorId": 1,
-    ///       "categoryId": 2,
-    ///       "publishedAt": "2024-01-15T10:30:00Z",
-    ///       "createdAt": "2024-01-15T09:00:00Z",
-    ///       "updatedAt": "2024-01-15T10:30:00Z"
-    ///     }
-    ///   ],
-    ///   "page": 1,
-    ///   "pageSize": 20,
-    ///   "total": 45
-    /// }
-    /// </code>
-    /// </remarks>
+    /// <param name="search">Optional term to search the title or excerpt.</param>
+    /// <param name="page">Page number (1‑based). Defaults to 1.</param>
+    /// <param name="pageSize">Number of items per page. Defaults to 10, max 100.</param>
     [HttpGet]
     [AllowAnonymous]
-    [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "search", "categoryId", "page", "pageSize" })]
-    [ProducesResponseType(typeof(PagedResult<PostResponse>), 200)]
-    [ProducesResponseType(304)]
+    [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any, VaryByQueryKeys = new[] { "search", "page", "pageSize" })]
     public async Task<ActionResult<PagedResult<PostResponse>>> ListPublished(
         [FromQuery] string? search = null,
-        [FromQuery] int? categoryId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
@@ -102,14 +47,6 @@ public class PostsController : ControllerBase
 
         // base query: only published posts
         var query = _db.Posts.AsNoTracking().Where(p => p.Status == PostStatus.Published);
-        
-        // Apply category filter if specified
-        if (categoryId.HasValue && categoryId.Value > 0)
-        {
-            query = query.Where(p => p.CategoryId == categoryId.Value);
-        }
-        
-        // Apply search filter if specified
         if (!string.IsNullOrWhiteSpace(search))
         {
             var term = search.Trim();
@@ -185,27 +122,6 @@ public class PostsController : ControllerBase
             return StatusCode(StatusCodes.Status304NotModified);
         }
         Response.Headers.ETag = etag;
-        return Ok(MapToResponse(p));
-    }
-
-    // GET: api/Posts/my/{slug} - Allow authenticated users to view their own posts by slug
-    /// <summary>
-    /// Retrieves a post by slug for authenticated users. Allows viewing own posts regardless of status.
-    /// Returns 404 if no post is found or if the user doesn't own the post.
-    /// </summary>
-    [HttpGet("my/{slug}", Order = 50)]
-    [Authorize(Roles = "Blogger,Admin")]
-    public async Task<ActionResult<PostResponse>> GetMyPostBySlug(string slug)
-    {
-        var uid = GetActorId();
-        if (uid <= 0) return Unauthorized(new { message = "Invalid token" });
-
-        var p = await _db.Posts.AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Slug == slug && x.AuthorId == uid);
-
-        if (p is null)
-            return new ObjectResult(new ProblemDetails { Title = "Post not found", Status = StatusCodes.Status404NotFound }) { StatusCode = StatusCodes.Status404NotFound };
-
         return Ok(MapToResponse(p));
     }
 
@@ -450,8 +366,11 @@ public class PostsController : ControllerBase
 
         if (p.AuthorId != uid && !User.IsInRole("Admin")) return Forbid();
 
-        // Allow deletion of all posts including published ones
-        // Removed restriction: if (p.Status == PostStatus.Published) return BadRequest("Cannot delete a published post.");
+        // Do not allow deletion of published posts to protect published content
+        if (p.Status == PostStatus.Published)
+        {
+            return new ObjectResult(new ProblemDetails { Title = "Forbidden operation", Detail = "Cannot delete a published post.", Status = StatusCodes.Status400BadRequest }) { StatusCode = StatusCodes.Status400BadRequest };
+        }
 
         _db.Posts.Remove(p);
         // audit before commit

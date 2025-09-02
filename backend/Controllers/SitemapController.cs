@@ -5,12 +5,8 @@ using System.Text;
 
 namespace BlogCms.Api.Controllers;
 
-/// <summary>
-/// Controller for generating sitemap.xml and robots.txt for SEO purposes
-/// </summary>
 [ApiController]
 [ApiExplorerSettings(GroupName = "SEO")]
-[Route("api/[controller]")]
 public class SitemapController(BlogDbContext db, IConfiguration cfg) : ControllerBase
 {
     [HttpGet("/sitemap.xml")]

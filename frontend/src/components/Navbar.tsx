@@ -157,6 +157,7 @@ export default function Navbar() {
             <NavItem to="/explore">Explore</NavItem>
             <NavItem to="/editor">New Post</NavItem>
             <NavItem to="/dashboard">My Posts</NavItem>
+            {isAdmin && <NavItem to="/admin">Admin</NavItem>}
             {isAdmin && <NavItem to="/moderation">Moderation</NavItem>}
           </nav>
         </div>

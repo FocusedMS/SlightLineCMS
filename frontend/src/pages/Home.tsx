@@ -90,7 +90,7 @@ export default function Home() {
               <Button variant="primary" onClick={() => nav('/login')}>
                 Start writing
               </Button>
-              <Button variant="secondary" onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Button variant="outline" onClick={() => document.getElementById('explore')?.scrollIntoView({ behavior: 'smooth' })}>
                 Explore posts
               </Button>
             </div>
@@ -186,7 +186,7 @@ export default function Home() {
               <div className="text-6xl">⚠️</div>
               <h3 className="text-xl font-semibold text-white">Failed to load posts</h3>
               <p className="text-text-soft">Please try again later</p>
-              <Button variant="secondary" onClick={() => window.location.reload()}>
+              <Button variant="outline" onClick={() => window.location.reload()}>
                 Retry
               </Button>
             </div>
@@ -218,7 +218,7 @@ export default function Home() {
                   </p>
                   {search && (
                     <Button
-                      variant="secondary"
+                      variant="outline"
                       onClick={() => {
                         setSearch('')
                         setPage(1)
@@ -235,7 +235,7 @@ export default function Home() {
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-3">
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => setPage(p => Math.max(1, p - 1))}
                   disabled={page <= 1}
                 >
@@ -245,7 +245,7 @@ export default function Home() {
                   Page {page} of {totalPages}
                 </span>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   disabled={page >= totalPages}
                 >

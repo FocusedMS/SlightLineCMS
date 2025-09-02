@@ -5,7 +5,7 @@ import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { Skeleton } from '../components/ui/Skeleton'
 import { Helmet } from 'react-helmet-async'
-import { toast } from '../lib/toast'
+import notify from '../lib/toast'
 
 interface UserManagement {
   id: number
@@ -34,12 +34,12 @@ export default function UserManagement() {
       return await api.put(`/api/UserManagement/users/${userId}/toggle-status`, { isActive })
     },
     onSuccess: (_, variables) => {
-      toast.success(`User ${variables.isActive ? 'unlocked' : 'locked'} successfully`)
+      notify.success(`User ${variables.isActive ? 'unlocked' : 'locked'} successfully`)
       queryClient.invalidateQueries({ queryKey: ['user-management'] })
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
     },
     onError: () => {
-      toast.error('Failed to update user status')
+      notify.error('Failed to update user status')
     }
   })
 
@@ -48,12 +48,12 @@ export default function UserManagement() {
       return await api.delete(`/api/UserManagement/users/${userId}`)
     },
     onSuccess: () => {
-      toast.success('User account deactivated successfully')
+      notify.success('User account deactivated successfully')
       queryClient.invalidateQueries({ queryKey: ['user-management'] })
       queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] })
     },
     onError: () => {
-      toast.error('Failed to deactivate user account')
+      notify.error('Failed to deactivate user account')
     }
   })
 
@@ -218,7 +218,7 @@ export default function UserManagement() {
                       <div className="flex items-center justify-center gap-2">
                         <Button
                           size="sm"
-                          variant={user.isActive ? "destructive" : "default"}
+                          variant={user.isActive ? "outline" : "primary"}
                           onClick={() => handleToggleStatus(user.id, user.isActive)}
                           disabled={toggleUserStatusMutation.isPending}
                           className="text-xs"
@@ -227,7 +227,7 @@ export default function UserManagement() {
                         </Button>
                         <Button
                           size="sm"
-                          variant="destructive"
+                          variant="outline"
                           onClick={() => handleDeleteUser(user.id)}
                           disabled={deleteUserMutation.isPending}
                           className="text-xs"

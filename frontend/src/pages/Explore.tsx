@@ -212,7 +212,7 @@ export default function Explore() {
             {totalPages > 1 && (
               <div className="flex justify-center items-center gap-2">
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
@@ -222,7 +222,7 @@ export default function Explore() {
                   Page {currentPage} of {totalPages}
                 </span>
                 <Button
-                  variant="secondary"
+                  variant="outline"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >
@@ -240,7 +240,7 @@ export default function Explore() {
                 Try adjusting your search terms or category filter
               </p>
               <Button
-                variant="secondary"
+                variant="outline"
                 onClick={() => {
                   setSearchTerm('')
                   setSelectedCategory('')

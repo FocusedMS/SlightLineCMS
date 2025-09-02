@@ -67,20 +67,39 @@ interface UserActivity {
   createdAt: string
 }
 
+interface RecentUserPosts {
+  userId: number
+  username: string
+  role: string
+  postsLast7Days: number
+  publishedLast7Days: number
+  draftLast7Days: number
+  pendingLast7Days: number
+}
+
 export default function AdminDashboard() {
   const { data: dashboardData, isLoading: dashboardLoading } = useQuery({
     queryKey: ['admin-dashboard'],
-    queryFn: async () => (await api.get('/api/Analytics/dashboard')).data
+    queryFn: async () => (await api.get('/api/Analytics/dashboard')).data,
+    retry: 0,
   })
 
   const { data: categoryStats, isLoading: categoryLoading } = useQuery({
     queryKey: ['category-stats'],
-    queryFn: async () => (await api.get('/api/Analytics/category-stats')).data
+    queryFn: async () => (await api.get('/api/Analytics/category-stats')).data,
+    retry: 0,
   })
 
   const { data: userActivity, isLoading: userLoading } = useQuery({
     queryKey: ['user-activity'],
-    queryFn: async () => (await api.get('/api/Analytics/user-activity')).data
+    queryFn: async () => (await api.get('/api/Analytics/user-activity')).data,
+    retry: 0,
+  })
+
+  const { data: recentUserPosts, isLoading: recentPostsLoading } = useQuery({
+    queryKey: ['recent-user-posts'],
+    queryFn: async () => (await api.get('/api/Analytics/recent-user-posts')).data as RecentUserPosts[],
+    retry: 0,
   })
 
   if (dashboardLoading) {
@@ -98,20 +117,32 @@ export default function AdminDashboard() {
     )
   }
 
+  // If the analytics endpoint is missing or returned an error, avoid crashing.
+  if (!dashboardData) {
+    return (
+      <Container size="xl">
+        <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <h2 className="text-xl font-semibold text-slate-200 mb-2">Admin analytics unavailable</h2>
+          <p className="text-slate-400">We couldn't load admin dashboard metrics. Other admin pages should still work.</p>
+        </Card>
+      </Container>
+    )
+  }
+
   const metrics = dashboardData as DashboardMetrics
 
   return (
-    <Container size="xl">
+    <Container size="full">
       <Helmet>
         <title>Admin Dashboard • Sightline</title>
         <meta name="description" content="Admin dashboard with comprehensive metrics and user management" />
       </Helmet>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="px-6 md:px-8 xl:px-10 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-200">Admin Dashboard</h1>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Admin Console</h1>
             <p className="text-slate-400 mt-2">Comprehensive metrics and user management</p>
           </div>
           <div className="text-sm text-slate-400">
@@ -119,16 +150,16 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        {/* Hero Metrics - full width */}
+        <div className="px-6 md:px-8 xl:px-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
           {/* Posts Metrics */}
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <Card className="p-6 border border-white/10 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/30 backdrop-blur shadow-[0_0_40px_-15px_rgba(0,0,0,0.6)]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Total Posts</p>
                 <p className="text-2xl font-bold text-slate-200">{metrics.posts.total}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center ring-1 ring-blue-400/20">
                 <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
@@ -147,13 +178,13 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Users Metrics */}
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <Card className="p-6 border border-white/10 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/30 backdrop-blur shadow-[0_0_40px_-15px_rgba(0,0,0,0.6)]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Total Users</p>
                 <p className="text-2xl font-bold text-slate-200">{metrics.users.total}</p>
               </div>
-              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center ring-1 ring-green-400/20">
                 <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
@@ -172,13 +203,13 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Categories Metrics */}
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <Card className="p-6 border border-white/10 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/30 backdrop-blur shadow-[0_0_40px_-15px_rgba(0,0,0,0.6)]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Categories</p>
                 <p className="text-2xl font-bold text-slate-200">{metrics.categories.total}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center ring-1 ring-purple-400/20">
                 <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                 </svg>
@@ -193,13 +224,13 @@ export default function AdminDashboard() {
           </Card>
 
           {/* Post Status Metrics */}
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <Card className="p-6 border border-white/10 bg-gradient-to-br from-slate-900/60 via-slate-800/50 to-slate-900/30 backdrop-blur shadow-[0_0_40px_-15px_rgba(0,0,0,0.6)]">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-slate-400 text-sm">Published</p>
                 <p className="text-2xl font-bold text-emerald-400">{metrics.posts.published}</p>
               </div>
-              <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-emerald-500/20 rounded-lg flex items-center justify-center ring-1 ring-emerald-400/20">
                 <svg className="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
@@ -219,7 +250,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="px-6 md:px-8 xl:px-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Recent Posts */}
           <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
             <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
@@ -286,9 +317,9 @@ export default function AdminDashboard() {
 
         {/* Category Statistics */}
         {categoryLoading ? (
-          <Skeleton className="h-64" />
+          <div className="px-6 md:px-8 xl:px-10"><Skeleton className="h-64" /></div>
         ) : (
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <div className="px-6 md:px-8 xl:px-10"><Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
             <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
@@ -323,14 +354,15 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
-          </Card>
+          </Card></div>
         )}
 
         {/* User Activity */}
         {userLoading ? (
-          <Skeleton className="h-64" />
+          <div className="px-6 md:px-8 xl:px-10"><Skeleton className="h-64" /></div>
         ) : (
-          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+          <div className="px-6 md:px-8 xl:px-10 grid grid-cols-1 2xl:grid-cols-3 gap-6">
+          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur 2xl:col-span-2">
             <h3 className="text-lg font-semibold text-slate-200 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -382,6 +414,29 @@ export default function AdminDashboard() {
               </table>
             </div>
           </Card>
+          {/* Top contributors mini chart using recent-user-posts */}
+          <Card className="p-6 border border-white/10 bg-gradient-to-r from-slate-900/50 to-slate-800/50 backdrop-blur">
+            <h3 className="text-lg font-semibold text-slate-200 mb-4">Top contributors (7 days)</h3>
+            <div className="space-y-3">
+              {(!recentPostsLoading ? (recentUserPosts as RecentUserPosts[] | undefined) ?? [] : []).slice(0, 8).map((u) => {
+                const max = Math.max(1, Math.max(...(((recentUserPosts as RecentUserPosts[]) || [{ postsLast7Days: 1 }]).map(x => x.postsLast7Days))));
+                const pct = Math.round((u.postsLast7Days / max) * 100);
+                return (
+                  <div key={u.userId} className="grid grid-cols-12 items-center gap-3">
+                    <div className="col-span-4 truncate text-slate-300 text-sm">{u.username}</div>
+                    <div className="col-span-6 h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-blue-500/70 via-emerald-500/70 to-purple-500/70" style={{ width: pct + '%' }} />
+                    </div>
+                    <div className="col-span-2 text-right text-slate-400 text-sm">{u.postsLast7Days}</div>
+                  </div>
+                )
+              })}
+              {(!recentUserPosts || (recentUserPosts as RecentUserPosts[]).length === 0) && !recentPostsLoading && (
+                <p className="text-slate-400 text-sm">No recent posts in the last 7 days.</p>
+              )}
+            </div>
+          </Card>
+          </div>
         )}
       </div>
     </Container>

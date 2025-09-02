@@ -9,8 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,19 +28,6 @@ builder.Services.AddControllers()
         o.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 builder.Services.AddProblemDetails();
-
-// Add API versioning
-builder.Services.AddApiVersioning(options =>
-{
-    options.AssumeDefaultVersionWhenUnspecified = true;
-    options.DefaultApiVersion = new ApiVersion(1, 0);
-    options.ReportApiVersions = true;
-});
-builder.Services.AddVersionedApiExplorer(options =>
-{
-    options.GroupNameFormat = "'v'VVV";
-    options.SubstituteApiVersionInUrl = true;
-});
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = false;
@@ -67,101 +52,24 @@ builder.Services.AddResponseCaching();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "Blog CMS API",
-        Version = "v1",
-        Description = "A comprehensive ASP.NET Core Web API for Blogging & Content Management System with features including user authentication, post management, SEO analysis, media uploads, and content moderation.",
-        Contact = new OpenApiContact
-        {
-            Name = "Blog CMS Team",
-            Email = "support@blogcms.com",
-            Url = new Uri("https://github.com/your-repo/blog-cms")
-        },
-        License = new OpenApiLicense
-        {
-            Name = "MIT License",
-            Url = new Uri("https://opensource.org/licenses/MIT")
-        }
-    });
-    
-    // Debug: Log what controllers are being discovered
-    Console.WriteLine("Configuring Swagger...");
-
-    // Include XML comments
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
-        Console.WriteLine($"XML comments loaded from: {xmlPath}");
-    }
-    else
-    {
-        Console.WriteLine($"XML file not found at: {xmlPath}");
-    }
-
-    // Add JWT Bearer authentication
+    c.SwaggerDoc("v1", new() { Title = "Sightline CMS API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
+        Description = "JWT Bearer auth. Example: Bearer {token}",
         Name = "Authorization",
-        Description = "Enter JWT token as: Bearer {token}",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
         Scheme = "bearer",
-        BearerFormat = "JWT",
-        Reference = new OpenApiReference
-        {
-            Type = ReferenceType.SecurityScheme,
-            Id = "Bearer"
-        }
+        BearerFormat = "JWT"
     });
-
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement {
         {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+            new OpenApiSecurityScheme {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
             },
             Array.Empty<string>()
         }
     });
-
-    // Add operation filter for security requirements
-    c.OperationFilter<BlogCms.Api.Utils.SecurityRequirementsOperationFilter>();
-
-    // Add custom tags for better organization
-    c.TagActionsBy(api =>
-    {
-        if (api.GroupName != null)
-        {
-            return new[] { api.GroupName };
-        }
-
-        var controllerActionDescriptor = api.ActionDescriptor as Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor;
-        if (controllerActionDescriptor != null)
-        {
-            return new[] { controllerActionDescriptor.ControllerName };
-        }
-
-        return new[] { api.ActionDescriptor.DisplayName };
-    });
-
-    // Customize operation IDs
-    c.CustomOperationIds(apiDesc =>
-    {
-        return apiDesc.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor controllerActionDescriptor 
-            ? controllerActionDescriptor.ActionName 
-            : null;
-    });
-
-    // Add request/response examples
-    c.SwaggerGeneratorOptions.DescribeAllParametersInCamelCase = true;
 });
 
 // ---------- Auth ----------
@@ -208,23 +116,11 @@ builder.Services.AddScoped<IMediaService, LocalFileMediaService>();
 
 var app = builder.Build();
 
-// Enable Swagger in all environments for testing
-app.UseSwagger();
-app.UseSwaggerUI(options =>
+if (app.Environment.IsDevelopment())
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blog CMS API v1");
-    options.DocumentTitle = "Blog CMS API Documentation";
-    options.DisplayRequestDuration();
-    options.DisplayOperationId();
-    options.DefaultModelsExpandDepth(2);
-    options.DefaultModelRendering(Swashbuckle.AspNetCore.SwaggerUI.ModelRendering.Example);
-    options.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
-    options.EnableDeepLinking();
-    options.EnableFilter();
-    options.ShowExtensions();
-    options.InjectStylesheet("/swagger-ui/custom.css");
-    options.InjectJavascript("/swagger-ui/custom.js");
-});
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
 // ---------- Middleware order matters ----------
 app.UseExceptionHandler();
@@ -251,6 +147,3 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
-
-// Make Program class accessible to tests
-public partial class Program { }
