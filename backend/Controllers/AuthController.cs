@@ -30,7 +30,7 @@ public class AuthController(BlogDbContext db, JwtTokenService jwt) : ControllerB
         db.Users.Add(user);
         await db.SaveChangesAsync();
 
-        // Assign the newly created user the Blogger role. Don't assume a hard‑coded RoleId;
+        // Assign the newly created user the Blogger role.
         // instead look up the role by name so seeding order or migrations don't break registration.
         var bloggerRoleId = await db.Roles.Where(r => r.Name == "Blogger").Select(r => r.Id).FirstOrDefaultAsync();
         if (bloggerRoleId == 0)

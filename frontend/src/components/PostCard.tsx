@@ -10,7 +10,7 @@ type PostCardProps = {
 }
 
 export default function PostCard({ id, slug, title, excerpt, coverImageUrl }: PostCardProps) {
-  const api = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:5000'
+  const api = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:62816'
   return (
     <Link to={`/post/${slug}`} className="group block transition-transform hover:-translate-y-1">
       <Card className="overflow-hidden p-0 hover:shadow-card transition-all duration-300">

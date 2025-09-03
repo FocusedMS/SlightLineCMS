@@ -13,7 +13,7 @@ jest.mock('react-router-dom', () => ({
 }))
 
 import { useSelector } from 'react-redux'
-import { AdminRoute } from '../components/AdminRoute'
+import { AdminRoute } from '../components/RouteGuard'
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>
 

@@ -5,7 +5,7 @@ import { Provider } from 'react-redux'
 import { configureStore } from '@reduxjs/toolkit'
 import UserManagement from '../pages/UserManagement'
 import { api } from '../lib/api'
-import { toast } from '../lib/toast'
+import notify from '../lib/toast'
 
 // Mock the API
 jest.mock('../lib/api', () => ({
@@ -18,7 +18,7 @@ jest.mock('../lib/api', () => ({
 
 // Mock toast
 jest.mock('../lib/toast', () => ({
-  toast: {
+  default: {
     success: jest.fn(),
     error: jest.fn()
   }
@@ -37,7 +37,7 @@ Object.defineProperty(window, 'confirm', {
 })
 
 const mockApi = api as jest.Mocked<typeof api>
-const mockToast = toast as jest.Mocked<typeof toast>
+const mockToast = notify as jest.Mocked<typeof notify>
 
 // Mock store
 const createMockStore = () => {

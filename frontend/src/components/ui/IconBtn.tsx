@@ -13,7 +13,7 @@ type IconBtnProps = {
 
 export const IconBtn: React.FC<IconBtnProps> = ({ icon: Icon, tooltip, to, onClick, className = '', ariaLabel }) => {
   const content = (
-    <Button variant="ghost" iconOnly className={className} aria-label={ariaLabel || tooltip} title={tooltip} onClick={onClick}>
+    <Button variant="ghost" className={className} aria-label={ariaLabel || tooltip} onClick={onClick}>
       <Icon className="h-4 w-4" />
     </Button>
   )

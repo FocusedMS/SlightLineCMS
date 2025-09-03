@@ -1,8 +1,16 @@
 import axios from "axios";
 import toast from "react-hot-toast";
 
+// Resolve API base URL with a safety override: some environments/browser caches
+// may still inject an old VITE_API_BASE_URL pointing to :5000. If so, force the
+// known-good development port 62816.
+const envBase = (import.meta as any)?.env?.VITE_API_BASE_URL as string | undefined;
+const resolvedBase = !envBase || /:5000\b/.test(envBase)
+  ? "http://localhost:62816"
+  : envBase;
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
+  baseURL: resolvedBase,
   withCredentials: false,
   timeout: 15000,
 });

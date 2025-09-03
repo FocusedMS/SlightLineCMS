@@ -21,7 +21,7 @@ global.IntersectionObserver = class IntersectionObserver {
   disconnect() {}
   observe() {}
   unobserve() {}
-}
+} as any
 
 // Mock ResizeObserver for responsive tests
 global.ResizeObserver = class ResizeObserver {
